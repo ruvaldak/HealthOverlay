@@ -13,14 +13,13 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import terrails.healthoverlay.HealthOverlay;
-import terrails.healthoverlay.SKConfig;
 
 import java.util.Random;
 
 @Mixin(InGameHud.class)
 public abstract class InGameHudMixin {
 
-    private final Identifier HEART_TEXTURES = new Identifier(HealthOverlay.MOD_ID, "textures/hearts.png");
+    private static final Identifier HEART_TEXTURES = new Identifier(HealthOverlay.MOD_ID, "textures/hearts.png");
 
     @Shadow private @Final MinecraftClient client;
     @Shadow private int ticks;
@@ -77,10 +76,9 @@ public abstract class InGameHudMixin {
             int hardcore_offset = player.world.getLevelProperties().isHardcore() ? 5 : 0;
             int highlight_offset = highlight ? 9 : 0;
             int iterHealth = i * 2 - 1;
-            boolean renderMissing = SKConfig.instance.render_missing;
 
             if (iterHealth <= 20) {
-                if (renderMissing && maxHealth < 19 && i == maxHealthIterator) {
+                if (maxHealth < 19 && i == maxHealthIterator) {
                     this.client.getTextureManager().bindTexture(HEART_TEXTURES);
                     for (int z = 1; z <= (20 - (int) maxHealth) / 2; z++) {
                         int xz = left + (MathHelper.ceil(maxHealth / 2.0f) + z - 1) % 10 * 8;
@@ -189,26 +187,4 @@ public abstract class InGameHudMixin {
             }
         }
     }
-
-    /*
-    @Inject(method = "method_1760", locals = LocalCapture.CAPTURE_FAILEXCEPTION,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;method_1734()Lnet/minecraft/entity/LivingEntity;"))
-    private void insertCustomRenderer(CallbackInfo info, PlayerEntity player) {
-        // code
-    }
-
-
-    @Redirect(method = "method_1760", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;ceil(F)I", ordinal = 0))
-    private int getHealth(float val) {
-        return Math.min(MathHelper.ceil(val), 20);
-    }
-
-    @Redirect(method = "method_1760", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/attribute/EntityAttributeInstance;getValue()D", ordinal = 0))
-    private double getSKMaxHealth(EntityAttributeInstance instance) {
-        if (instance.getAttribute() != EntityAttributes.MAX_HEALTH) {
-            return instance.getValue();
-        }
-        return Math.min(instance.getValue(), 20.0);
-    }
-    */
 }

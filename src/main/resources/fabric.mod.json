@@ -2,7 +2,7 @@
   "id": "healthoverlay",
   "name": "Health Overlay",
   "description": "Displays additional hearts and absorption!",
-  "version": "1.0.0",
+  "version": "${version}",
   "side": "client",
   "initializers": [
     "terrails.healthoverlay.HealthOverlay"

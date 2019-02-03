@@ -6,23 +6,25 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 archivesBaseName = "HealthOverlay"
-version = "1.0.0"
+version = "${minecraft_version}-${mod_version}"
 
 minecraft {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:19w05a"
-	mappings "net.fabricmc:yarn:19w05a.6"
-	modCompile "net.fabricmc:fabric-loader:0.3.4.105"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modCompile "net.fabricmc:fabric:0.1.5.87"
+	minecraft "com.mojang:minecraft:${snapshot_version}"
+	mappings "net.fabricmc:yarn:${mappings_version}"
+	modCompile "net.fabricmc:fabric-loader:${loader_version}"
+	modCompile "net.fabricmc:fabric:${fabric_version}"
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
+processResources {
+	filesMatching('fabric.mod.json') {
+		expand 'version': mod_version
+	}
+	inputs.property "version", mod_version
+}
+
 task sourcesJar(type: Jar, dependsOn: classes) {
 	classifier = 'sources'
 	from sourceSets.main.allSource
