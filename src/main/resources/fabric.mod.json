@@ -1,0 +1,16 @@
+{
+  "id": "healthoverlay",
+  "name": "Health Overlay",
+  "description": "Displays additional hearts and absorption!",
+  "version": "1.0.0",
+  "side": "client",
+  "initializers": [
+    "terrails.healthoverlay.HealthOverlay"
+  ],
+  "requires": {
+    "fabric": "*"
+  },
+  "mixins": {
+    "client": "healthoverlay.client.json"
+  }
+}
