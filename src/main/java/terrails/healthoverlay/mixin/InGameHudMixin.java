@@ -1,7 +1,6 @@
 package terrails.healthoverlay.mixin;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.ContainerScreen;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.effect.StatusEffects;
@@ -28,11 +27,6 @@ public abstract class InGameHudMixin {
 
     @Shadow private @Final Random random;
     @Shadow private long field_2032; // healthTicks
-
-    @Inject(method = "method_1765", at = @At(value = "INVOKE_ASSIGN", target = "Ljava/util/Iterator;next()Ljava/lang/Object;"))
-    private void fixStatusEffectRenderer(CallbackInfo info) {
-        this.client.getTextureManager().bindTexture(ContainerScreen.BACKGROUND_TEXTURE);
-    }
 
     @Redirect(method = "method_1760",
             slice = @Slice(from = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=health")),
