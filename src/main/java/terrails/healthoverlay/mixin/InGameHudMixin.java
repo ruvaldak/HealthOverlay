@@ -28,14 +28,14 @@ public abstract class InGameHudMixin {
     @Shadow private @Final Random random;
     @Shadow private long field_2032; // healthTicks
 
-    @Redirect(method = "method_1760",
+    @Redirect(method = "renderStatusBars",
             slice = @Slice(from = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=health")),
             at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;ceil(F)I", ordinal = 0))
     private int runDefaultRenderer(float def) {
         return -1;
     }
 
-    @Inject(method = "method_1760", locals = LocalCapture.CAPTURE_FAILEXCEPTION,
+    @Inject(method = "renderStatusBars", locals = LocalCapture.CAPTURE_FAILEXCEPTION,
             at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=health"))
     private void render(CallbackInfo info, PlayerEntity player) {
         InGameHud hud = (InGameHud) (Object) this;

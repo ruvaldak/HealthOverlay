@@ -5,27 +5,28 @@ plugins {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = "HealthOverlay"
-version = "${minecraft_version}-${mod_version}"
+archivesBaseName = "HealthOverlay-1.14"
+version = "1.0.1"
+
+def minecraft_version = "19w08a"
+def yarn_version = "19w08a.4"
+def loader_version = "0.3.7.109"
+def fabric_version = "0.2.2.103"
 
 minecraft {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${snapshot_version}"
-	mappings "net.fabricmc:yarn:${mappings_version}"
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings "net.fabricmc:yarn:${yarn_version}"
+	
 	modCompile "net.fabricmc:fabric-loader:${loader_version}"
 	modCompile "net.fabricmc:fabric:${fabric_version}"
 }
 
 processResources {
 	filesMatching('fabric.mod.json') {
-		expand 'version': mod_version
+		expand 'version': project.version
 	}
-	inputs.property "version", mod_version
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
-	from sourceSets.main.allSource
+	inputs.property "version", project.version
 }
