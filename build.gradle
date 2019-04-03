@@ -1,32 +1,66 @@
 plugins {
-	id 'fabric-loom' version '0.2.0-SNAPSHOT'
+    id 'fabric-loom' version '0.2.0-SNAPSHOT'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
-archivesBaseName = "HealthOverlay-1.14"
-version = "1.0.1"
-
-def minecraft_version = "19w08a"
-def yarn_version = "19w08a.4"
+def minecraft_version = "19w14a"
+def yarn_version = "19w14a.1"
 def loader_version = "0.3.7.109"
-def fabric_version = "0.2.2.103"
+def fabric_version = "0.2.6.117"
+def dev_mode_version = "1.0.10"
+
+archivesBaseName = "HealthOverlay-${minecraft_version}"
+version = "1.1.4"
+group = "terrails.healthoverlay"
 
 minecraft {
 }
 
+repositories {
+    maven {url "https://maven.jamieswhiteshirt.com/libs-release/"}
+}
+
 dependencies {
-	minecraft "com.mojang:minecraft:${minecraft_version}"
-	mappings "net.fabricmc:yarn:${yarn_version}"
-	
-	modCompile "net.fabricmc:fabric-loader:${loader_version}"
-	modCompile "net.fabricmc:fabric:${fabric_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings "net.fabricmc:yarn:${yarn_version}"
+    modCompile "net.fabricmc:fabric-loader:${loader_version}"
+
+    modCompile "net.fabricmc:fabric:${fabric_version}"
+    modCompile "com.jamieswhiteshirt:developer-mode:${dev_mode_version}"
 }
 
 processResources {
-	filesMatching('fabric.mod.json') {
-		expand 'version': project.version
-	}
-	inputs.property "version", project.version
+    inputs.property "version", project.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include "fabric.mod.json"
+        expand "version": project.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "fabric.mod.json"
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+task apiJar(type: Jar, dependsOn: classes) {
+    from(sourceSets.main.allJava) {
+        include "terrails/healthoverlay/api/**"
+    }
+    from "LICENSE"
+    classifier = "api"
+}
+
+
+artifacts {
+    archives apiJar
+}
+
+jar {
+    from "LICENSE"
 }

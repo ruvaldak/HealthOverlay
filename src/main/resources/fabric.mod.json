@@ -4,9 +4,7 @@
   "description": "Displays additional hearts and absorption!",
   "version": "${version}",
   "side": "client",
-  "initializers": [
-    "terrails.healthoverlay.HealthOverlay"
-  ],
+  "initializers": [],
   "requires": {
     "fabric": "*"
   },
