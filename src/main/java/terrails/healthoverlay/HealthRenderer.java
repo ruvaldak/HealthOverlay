@@ -65,15 +65,15 @@ public class HealthRenderer {
         int int_9 = Math.max(10 - (int_8 - 2), 3);
         int int_12 = int_7;
         int int_14 = -1;
-        if (player.hasPotionEffect(StatusEffects.REGENERATION)) {
+        if (player.hasStatusEffect(StatusEffects.REGENERATION)) {
             int_14 = ticks % MathHelper.ceil(float_1 + 5.0F);
         }
 
         for(int int_17 = MathHelper.ceil((float_1 + (float)int_7) / 2.0F) - 1; int_17 >= 0; --int_17) {
             int int_18 = 16;
-            if (player.hasPotionEffect(StatusEffects.POISON)) {
+            if (player.hasStatusEffect(StatusEffects.POISON)) {
                 int_18 += 36;
-            } else if (player.hasPotionEffect(StatusEffects.WITHER)) {
+            } else if (player.hasStatusEffect(StatusEffects.WITHER)) {
                 int_18 += 72;
             }
 
@@ -149,11 +149,11 @@ public class HealthRenderer {
     }
 
     private void renderHearts(int int_4, int int_6, int int_14, boolean absorption) {
-        if (this.player.hasPotionEffect(StatusEffects.WITHER)) {
+        if (this.player.hasStatusEffect(StatusEffects.WITHER)) {
             return;
         }
         int y = absorption ? 75 : 10;
-        if (this.player.hasPotionEffect(StatusEffects.POISON)) {
+        if (this.player.hasStatusEffect(StatusEffects.POISON)) {
             y += 9;
         }
 

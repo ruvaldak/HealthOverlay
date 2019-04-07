@@ -1,14 +1,26 @@
 {
+  "schemaVersion": 1,
   "id": "healthoverlay",
-  "name": "Health Overlay",
-  "description": "Displays additional hearts and absorption!",
   "version": "${version}",
-  "side": "client",
-  "initializers": [],
-  "requires": {
-    "fabric": "*"
+
+  "name": "Health Overlay",
+  "description": "Displays additional hearts and absorption in the same row!",
+  "authors": [
+    "Terrails"
+  ],
+  "contact": {
+    "sources": "https://github.com/Terrails/Health-Overlay"
   },
-  "mixins": {
-    "client": "healthoverlay.client.json"
+
+  "license": "Apache-2.0",
+
+  "environment": "client",
+  "mixins": [
+    "healthoverlay.mixins.json"
+  ],
+
+  "requires": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
   }
 }
