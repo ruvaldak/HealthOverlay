@@ -85,6 +85,11 @@ public class HealthRenderer {
             int int_26 = MathHelper.ceil((float)(int_17 + 1) / 10.0F) - 1;
             int int_21 = int_4 + int_17 % 10 * 8;
             int int_22 = int_6 - int_26 * int_9;
+            // Moves the absorption up one row. Absorption is never rendered in the same row as regular health
+            if (int_12 > 0) {
+                int_22 = int_6 - 10;
+                int_21 = int_4 + (MathHelper.ceil(int_12 / 2) - 1) % 10 * 8;
+            }
             if (int_1 <= 4) {
                 int_22 += random.nextInt(2);
             }
@@ -101,7 +106,7 @@ public class HealthRenderer {
             // Modified to make the ghost hearts appear
             this.client.getTextureManager().bindTexture(HEART_ICONS_LOCATION);
             for (int j = MathHelper.ceil((20.0F - float_1) / 2.0F) - 1; j >= 0 && int_17 == 0 && HealthRendererConfiguration.GHOST_HEARTS; --j) {
-                int jx = int_4 + (MathHelper.ceil(float_1 / 2.0f) + j) % 10 * 8;
+                int jx = int_4 + (MathHelper.ceil((float_1) / 2.0f) + j) % 10 * 8;
                 hud.blit(jx, int_6 - (int_12 > 0 ? 10 : 0), 0, 0, 9, 9);
             }
             this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
