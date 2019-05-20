@@ -61,8 +61,8 @@ public class HealthRenderer {
         int int_6 = this.client.window.getScaledHeight() - 39;
         float float_1 = Math.min(20, player.getHealthMaximum());
         int int_7 = Math.min(20, MathHelper.ceil(player.getAbsorptionAmount()));
-        int int_8 = MathHelper.ceil((float_1 + (float)int_7) / 2.0F / 10.0F);
-        int int_9 = Math.max(10 - (int_8 - 2), 3);
+//        int int_8 = MathHelper.ceil((float_1 + (float)int_7) / 2.0F / 10.0F);
+//        int int_9 = Math.max(10 - (int_8 - 2), 3);
         int int_12 = int_7;
         int int_14 = -1;
         if (player.hasStatusEffect(StatusEffects.REGENERATION)) {
@@ -82,13 +82,14 @@ public class HealthRenderer {
                 int_19 = 1;
             }
 
-            int int_26 = MathHelper.ceil((float)(int_17 + 1) / 10.0F) - 1;
+//            int int_26 = MathHelper.ceil((float)(int_17 + 1) / 10.0F) - 1;
             int int_21 = int_4 + int_17 % 10 * 8;
-            int int_22 = int_6 - int_26 * int_9;
+//            int int_22 = int_6 - int_26 * int_9;
+            int int_22 = int_6;
             // Moves the absorption up one row. Absorption is never rendered in the same row as regular health
             if (int_12 > 0) {
                 int_22 = int_6 - 10;
-                int_21 = int_4 + (MathHelper.ceil(int_12 / 2) - 1) % 10 * 8;
+                int_21 = int_4 + (MathHelper.ceil((float) int_12 / 2.0F) - 1) % 10 * 8;
             }
             if (int_1 <= 4) {
                 int_22 += random.nextInt(2);

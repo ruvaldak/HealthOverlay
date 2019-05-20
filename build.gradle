@@ -12,7 +12,7 @@ def fabric_version = "0.2.7+build.127"
 def dev_mode_version = "1.0.10"
 
 archivesBaseName = "HealthOverlay-${minecraft_version}"
-version = "1.2.6"
+version = "1.2.7"
 group = "terrails.healthoverlay"
 
 minecraft {
