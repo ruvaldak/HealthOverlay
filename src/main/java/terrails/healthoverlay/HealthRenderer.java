@@ -40,10 +40,10 @@ public class HealthRenderer {
         int int_1 = MathHelper.ceil(player.getHealth());
         boolean boolean_1 = this.healthTicks > (long) ticks && (this.healthTicks - (long) ticks) / 3L % 2L == 1L;
         long long_1 = SystemUtil.getMeasuringTimeMs();
-        if (int_1 < this.health && player.field_6008 > 0) {
+        if (int_1 < this.health && player.timeUntilRegen > 0) {
             this.prevSystemTime = long_1;
             this.healthTicks = (long)(ticks + 20);
-        } else if (int_1 > this.health && player.field_6008 > 0) {
+        } else if (int_1 > this.health && player.timeUntilRegen > 0) {
             this.prevSystemTime = long_1;
             this.healthTicks = (long)(ticks + 10);
         }
