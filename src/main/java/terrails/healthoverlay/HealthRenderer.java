@@ -1,5 +1,6 @@
 package terrails.healthoverlay;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -10,7 +11,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.SystemUtil;
 import net.minecraft.util.math.MathHelper;
-import terrails.healthoverlay.api.HealthRendererConfiguration;
 
 import java.util.Random;
 
@@ -19,7 +19,8 @@ public class HealthRenderer {
 
     public static HealthRenderer INSTANCE = new HealthRenderer();
 
-    private static final Identifier HEART_ICONS_LOCATION = new Identifier("healthoverlay:textures/hearts.png");
+    private static final Identifier HEALTH_ICONS_LOCATION = new Identifier("healthoverlay:textures/health.png");
+    private static final Identifier ABSORPTION_ICONS_LOCATION = new Identifier("healthoverlay:textures/absorption.png");
 
     private MinecraftClient client = MinecraftClient.getInstance();
     private InGameHud hud = client.inGameHud;
@@ -29,157 +30,212 @@ public class HealthRenderer {
     private int prevHealth, health;
     private long prevSystemTime, healthTicks;
 
-    /**
-     * Copied from InGameHud, still need to find
-     * some reasonable names for the variables
-     */
     public void render(PlayerEntity player) {
         this.player = player;
         int ticks = hud.getTicks();
 
-        int int_1 = MathHelper.ceil(player.getHealth());
-        boolean boolean_1 = this.healthTicks > (long) ticks && (this.healthTicks - (long) ticks) / 3L % 2L == 1L;
-        long long_1 = SystemUtil.getMeasuringTimeMs();
-        if (int_1 < this.health && player.timeUntilRegen > 0) {
-            this.prevSystemTime = long_1;
-            this.healthTicks = (long)(ticks + 20);
-        } else if (int_1 > this.health && player.timeUntilRegen > 0) {
-            this.prevSystemTime = long_1;
-            this.healthTicks = (long)(ticks + 10);
+        int currentHealth = MathHelper.ceil(player.getHealth());
+        boolean highlight = this.healthTicks > (long) ticks && (this.healthTicks - (long) ticks) / 3L % 2L == 1L;
+        long systemTime = SystemUtil.getMeasuringTimeMs();
+        if (currentHealth < this.health && player.timeUntilRegen > 0) {
+            this.prevSystemTime = systemTime;
+            this.healthTicks = (ticks + 20);
+        } else if (currentHealth > this.health && player.timeUntilRegen > 0) {
+            this.prevSystemTime = systemTime;
+            this.healthTicks = (ticks + 10);
         }
 
-        if (long_1 - this.prevSystemTime > 1000L) {
-            this.health = int_1;
-            this.prevHealth = int_1;
-            this.prevSystemTime = long_1;
+        if (systemTime - this.prevSystemTime > 1000L) {
+            this.health = currentHealth;
+            this.prevHealth = currentHealth;
+            this.prevSystemTime = systemTime;
         }
 
-        this.health = int_1;
-        int int_2 = this.prevHealth;
-        random.setSeed((long)(ticks * 312871));
-        int int_4 = this.client.window.getScaledWidth() / 2 - 91;
-        int int_6 = this.client.window.getScaledHeight() - 39;
-        float float_1 = Math.min(20, player.getHealthMaximum());
-        int int_7 = Math.min(20, MathHelper.ceil(player.getAbsorptionAmount()));
-//        int int_8 = MathHelper.ceil((float_1 + (float)int_7) / 2.0F / 10.0F);
-//        int int_9 = Math.max(10 - (int_8 - 2), 3);
-        int int_12 = int_7;
-        int int_14 = -1;
+        this.health = currentHealth;
+        int previousHealth = this.prevHealth;
+        this.random.setSeed(ticks * 312871);
+        int xPos = this.client.window.getScaledWidth() / 2 - 91;
+        int yPos = this.client.window.getScaledHeight() - 39;
+        float maxHealth = player.getHealthMaximum();
+        int absorption = MathHelper.ceil(player.getAbsorptionAmount());
+
+        currentHealth = Math.min(currentHealth, 20);
+        previousHealth = Math.min(previousHealth, 20);
+        maxHealth = Math.min(maxHealth, 20);
+        absorption = Math.min(absorption, 20);
+        int absorptionCount = absorption;
+
+        int rowHeight = 10;
+        int regenHealth = -1;
         if (player.hasStatusEffect(StatusEffects.REGENERATION)) {
-            int_14 = ticks % MathHelper.ceil(float_1 + 5.0F);
+            regenHealth = ticks % MathHelper.ceil(maxHealth + 5.0F);
         }
 
-        for(int int_17 = MathHelper.ceil((float_1 + (float)int_7) / 2.0F) - 1; int_17 >= 0; --int_17) {
-            int int_18 = 16;
-            if (player.hasStatusEffect(StatusEffects.POISON)) {
-                int_18 += 36;
-            } else if (player.hasStatusEffect(StatusEffects.WITHER)) {
-                int_18 += 72;
+        int effectOffset = 16;
+        if (player.hasStatusEffect(StatusEffects.POISON)) {
+            effectOffset += 36;
+        } else if (player.hasStatusEffect(StatusEffects.WITHER)) {
+            effectOffset += 72;
+        }
+
+        int hardcoreOffset = 0;
+        if (player.world.getLevelProperties().isHardcore()) {
+            hardcoreOffset = 5;
+        }
+
+        for (int i = MathHelper.ceil((maxHealth + (float) absorption) / 2.0F) - 1; i >= 0; --i) {
+            int value = i * 2 + 1;
+            int x = xPos + i % 10 * 8;
+            int y = yPos;
+            if (currentHealth <= 4) {
+                y += this.random.nextInt(2);
             }
 
-            int int_19 = 0;
-            if (boolean_1) {
-                int_19 = 1;
+            if (absorptionCount > 0) {
+                x = xPos + (MathHelper.ceil((float) absorptionCount / 2.0F) - 1) % 10 * 8;
+                y = yPos - 10;
             }
 
-//            int int_26 = MathHelper.ceil((float)(int_17 + 1) / 10.0F) - 1;
-            int int_21 = int_4 + int_17 % 10 * 8;
-//            int int_22 = int_6 - int_26 * int_9;
-            int int_22 = int_6;
-            // Moves the absorption up one row. Absorption is never rendered in the same row as regular health
-            if (int_12 > 0) {
-                int_22 = int_6 - 10;
-                int_21 = int_4 + (MathHelper.ceil((float) int_12 / 2.0F) - 1) % 10 * 8;
-            }
-            if (int_1 <= 4) {
-                int_22 += random.nextInt(2);
+            if (absorptionCount <= 0 && i == regenHealth) {
+                y -= 2;
             }
 
-            if (int_12 <= 0 && int_17 == int_14) {
-                int_22 -= 2;
-            }
-
-            int int_23 = 0;
-            if (player.world.getLevelProperties().isHardcore()) {
-                int_23 = 5;
-            }
-
-            // Modified to make the ghost hearts appear
+            /*
+            == Ghost hearts ==
             this.client.getTextureManager().bindTexture(HEART_ICONS_LOCATION);
             for (int j = MathHelper.ceil((20.0F - float_1) / 2.0F) - 1; j >= 0 && int_17 == 0 && HealthRendererConfiguration.GHOST_HEARTS; --j) {
                 int jx = int_4 + (MathHelper.ceil((float_1) / 2.0f) + j) % 10 * 8;
                 hud.blit(jx, int_6 - (int_12 > 0 ? 10 : 0), 0, 0, 9, 9);
             }
             this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
+            */
 
-            if (int_17 * 2 + 1 > float_1 - 1 || (int_12 == int_7 && int_7 % 2 == 1)) {
-                this.client.getTextureManager().bindTexture(HEART_ICONS_LOCATION);
-                hud.blit(int_21, int_22, 9 + int_19 * 9, 0, 9, 9);
+            if (value % 2 == 1 && value == maxHealth) {
+                this.client.getTextureManager().bindTexture(HEALTH_ICONS_LOCATION);
+                hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
+                this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
+            } else if (absorptionCount == absorption && absorption % 2 == 1) {
+                this.client.getTextureManager().bindTexture(ABSORPTION_ICONS_LOCATION);
+                hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
                 this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
             } else {
-                hud.blit(int_21, int_22, 16 + int_19 * 9, 9 * int_23, 9, 9);
+                hud.blit(x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset, 9, 9);
             }
 
-
-            if (boolean_1) {
-                if (int_17 * 2 + 1 < int_2) {
-                    hud.blit(int_21, int_22, int_18 + 54, 9 * int_23, 9, 9);
+            if (highlight) {
+                if (value < previousHealth) {
+                    hud.blit(x, y, effectOffset + 54, 9 * hardcoreOffset, 9, 9);
                 }
 
-                if (int_17 * 2 + 1 == int_2) {
-                    hud.blit(int_21, int_22, int_18 + 63, 9 * int_23, 9, 9);
+                if (value == previousHealth) {
+                    hud.blit(x, y, effectOffset + 63, 9 * hardcoreOffset, 9, 9);
                 }
             }
 
-            if (int_12 > 0) {
-                if (int_12 == int_7 && int_7 % 2 == 1) {
-                    hud.blit(int_21, int_22, int_18 + 153, 9 * int_23, 9, 9);
-                    --int_12;
+            if (absorptionCount > 0) {
+                if (absorptionCount == absorption && absorption % 2 == 1) {
+                    hud.blit(x, y, effectOffset + 153, 9 * hardcoreOffset, 9, 9);
+                    --absorptionCount;
                 } else {
-                    hud.blit(int_21, int_22, int_18 + 144, 9 * int_23, 9, 9);
-                    int_12 -= 2;
+                    hud.blit(x, y, effectOffset + 144, 9 * hardcoreOffset, 9, 9);
+                    absorptionCount -= 2;
                 }
             } else {
-                if (int_17 * 2 + 1 < int_1) {
-                    hud.blit(int_21, int_22, int_18 + 36, 9 * int_23, 9, 9);
+                if (value < currentHealth) {
+                    hud.blit(x, y, effectOffset + 36, 9 * hardcoreOffset, 9, 9);
                 }
 
-                if (int_17 * 2 + 1 == int_1) {
-                    hud.blit(int_21, int_22, int_18 + 45, 9 * int_23, 9, 9);
+                if (value == currentHealth) {
+                    hud.blit(x, y, effectOffset + 45, 9 * hardcoreOffset, 9, 9);
                 }
             }
         }
 
-        this.renderHearts(int_4, int_6, int_14, false);
-        this.renderHearts(int_4, int_6 - 10, int_14, true);
+        this.renderHearts(xPos, yPos, regenHealth, false);
+        this.renderHearts(xPos, yPos - rowHeight, regenHealth, true);
     }
 
-    private void renderHearts(int int_4, int int_6, int int_14, boolean absorption) {
-        if (this.player.hasStatusEffect(StatusEffects.WITHER)) {
+    private void renderHearts(int xPosition, int yPosition, int regenHealth, boolean absorption) {
+        if (absorption && (player.hasStatusEffect(StatusEffects.POISON) || player.hasStatusEffect(StatusEffects.WITHER)))
             return;
-        }
-        int y = absorption ? 75 : 10;
-        if (this.player.hasStatusEffect(StatusEffects.POISON)) {
-            y += 9;
-        }
-
-        if (this.player.world.getLevelProperties().isHardcore()) {
-            y += 27;
-        }
-
+        int yTex = 9;
+        int xTex = this.player.world.getLevelProperties().isHardcore() ? 18 : 0;
         int currentValue = MathHelper.ceil(absorption ? this.player.getAbsorptionAmount() : this.player.getHealth()) - 20;
-        this.client.getTextureManager().bindTexture(HEART_ICONS_LOCATION);
-        for (int i = 0; i < MathHelper.ceil(currentValue / 2.0F); ++i) {
-            int value = i * 2 + 1;
-            int regenOffset = !absorption && (i - (10 * (i / 10))) == int_14 ? -2 : 0;
-            int typeOffset = (value / 20) % 12;
+        if (currentValue < 0) return;
 
-            if (value == currentValue) {
-                hud.blit(int_4 + i % 10 * 8, int_6 + regenOffset, 9 + 18 * typeOffset, y, 9, 9);
-            } else if (absorption || value < currentValue) {
-                hud.blit(int_4 + i % 10 * 8, int_6 + regenOffset, 18 * typeOffset, y, 9, 9);
+        this.client.getTextureManager().bindTexture(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
+        for (int i = 0; i < MathHelper.ceil(currentValue / 2.0F); ++i) {
+            GlStateManager.clearCurrentColor();
+            int value = i * 2 + 1;
+            int regenOffset = !absorption && (i - (10 * (i / 10))) == regenHealth ? -2 : 0;
+            int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.length : HealthOverlay.healthColors.length);
+            Color heartColor = (absorption ? HealthOverlay.absorptionColors : HealthOverlay.healthColors)[typeOffset];
+
+            int yPos = yPosition + regenOffset;
+            int xPos = xPosition + i % 10 * 8;
+
+            if (this.player.hasStatusEffect(StatusEffects.POISON)) {
+                color(multiply(heartColor, new Color(35, 97, 36), 150));
+            } else if (this.player.hasStatusEffect(StatusEffects.WITHER)) {
+                color(multiply(heartColor, new Color(20, 20, 20), 200));
+            } else color(heartColor);
+
+            // Full heart
+            if (value < currentValue) {
+
+                // Render heart
+                hud.blit(xPos, yPos, xTex, yTex, 9, 9);
+
+                // Add shading
+                colorAlpha(0.22F);
+                hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+
+                // Add hardcore overlay
+                if (xTex == 18) {
+                    colorAlpha(0.7F);
+                    hud.blit(xPos, yPos, xTex, yTex + 18, 9, 9);
+                } // Add white dot
+                else {
+                    colorAlpha(1.0F);
+                    hud.blit(xPos, yPos, 36, yTex, 9, 9);
+                }
+                // Half heart
+            } else if (value == currentValue) {
+
+                // Render heart
+                hud.blit(xPos, yPos, xTex + 9, yTex, 9, 9);
+
+                // Add shading
+                colorAlpha(0.22F);
+                hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+
+                // Add hardcore overlay
+                if (xTex == 18) {
+                    colorAlpha(0.7F);
+                    hud.blit(xPos, yPos, xTex + 9, yTex + 18, 9, 9);
+                } // Add white dot
+                else {
+                    colorAlpha(1.0F);
+                    hud.blit(xPos, yPos, 36, yTex, 9, 9);
+                }
             }
         }
+        GlStateManager.clearCurrentColor();
         this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
+    }
+
+    private Color multiply(Color color1, Color color2, int multiply) {
+        float red = (color1.getRed() * color2.getRed()) * multiply;
+        float green = (color1.getGreen() * color2.getGreen()) * multiply;
+        float blue = (color1.getBlue() * color1.getBlue()) * multiply;
+        return new Color(red, green, blue);
+    }
+
+    private void color(Color color) {
+        GlStateManager.color4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+    }
+
+    private void colorAlpha(float alpha) {
+        GlStateManager.color4f(1, 1, 1, alpha);
     }
 }

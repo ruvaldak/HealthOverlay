@@ -9,18 +9,30 @@
     "Terrails"
   ],
   "contact": {
-    "sources": "https://github.com/Terrails/Health-Overlay"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/health-overlay",
+    "issues": "https://github.com/Terrails/Health-Overlay/issues"
   },
 
   "license": "Apache-2.0",
+  "icon": "assets/healthoverlay/icon.png",
 
   "environment": "client",
   "mixins": [
     "healthoverlay.mixins.json"
   ],
 
+  "entrypoints": {
+    "client": [
+      "terrails.healthoverlay.HealthOverlay"
+    ]
+  },
+
   "depends": {
     "fabricloader": ">=0.4.0",
     "fabric": "*"
+  },
+
+  "custom": {
+    "modmenu:clientsideOnly": true
   }
 }
