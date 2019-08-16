@@ -1,20 +1,20 @@
 package terrails.healthoverlay;
 
-public class Color {
+public class GLColor {
 
     private final float red;
     private final float green;
     private final float blue;
     private final float alpha;
 
-    public Color(float red, float green, float blue, float alpha) {
+    public GLColor(float red, float green, float blue, float alpha) {
         this.red = red / 255.0F;
         this.green = green / 255.0F;
         this.blue = blue / 255.0F;
         this.alpha = alpha / 255.0F;
     }
 
-    public Color(float red, float green, float blue) {
+    public GLColor(float red, float green, float blue) {
         this(red, green, blue, 255.0F);
     }
 

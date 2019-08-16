@@ -19,8 +19,8 @@ public class HealthOverlay implements ClientModInitializer {
 
     public static final Logger LOGGER = LogManager.getLogger("HealthOverlay");
 
-    public static Color[] healthColors = new Color[10];
-    public static Color[] absorptionColors = new Color[10];
+    public static GLColor[] healthColors = new GLColor[10];
+    public static GLColor[] absorptionColors = new GLColor[10];
 
     @Override
     public void onInitializeClient() {
@@ -73,25 +73,25 @@ public class HealthOverlay implements ClientModInitializer {
 
         String[] healthValues = healthRGB.getValue();
         if (healthValues != null) {
-            if (healthColors.length != healthValues.length) { healthColors = new Color[healthValues.length]; }
+            if (healthColors.length != healthValues.length) { healthColors = new GLColor[healthValues.length]; }
             for (int i = 0; i < healthValues.length; i++) {
                 String[] values = healthValues[i].split(",");
                 values[0] = values[0].replaceAll("\\s+","");
                 values[1] = values[1].replaceAll("\\s+","");
                 values[2] = values[2].replaceAll("\\s+","");
-                healthColors[i] = new Color(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]), 255);
+                healthColors[i] = new GLColor(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]), 255);
             }
         }
 
         String[] absorptionValues = absorptionRGB.getValue();
         if (absorptionValues != null ) {
-            if (absorptionColors.length != absorptionValues.length) { absorptionColors = new Color[absorptionValues.length]; }
+            if (absorptionColors.length != absorptionValues.length) { absorptionColors = new GLColor[absorptionValues.length]; }
             for (int i = 0; i < absorptionValues.length; i++) {
                 String[] values = absorptionValues[i].split(",");
                 values[0] = values[0].replaceAll("\\s+","");
                 values[1] = values[1].replaceAll("\\s+","");
                 values[2] = values[2].replaceAll("\\s+","");
-                absorptionColors[i] = new Color(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]), 255);
+                absorptionColors[i] = new GLColor(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]), 255);
             }
         }
     }

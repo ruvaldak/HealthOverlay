@@ -110,6 +110,7 @@ public class HealthRenderer {
             this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
             */
 
+            // Regular half heart background
             if (value % 2 == 1 && value == maxHealth) {
                 this.client.getTextureManager().bindTexture(HEALTH_ICONS_LOCATION);
                 hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
@@ -122,6 +123,7 @@ public class HealthRenderer {
                 hud.blit(x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset, 9, 9);
             }
 
+            // Highlight when damaged / regenerating
             if (highlight) {
                 if (value < previousHealth) {
                     hud.blit(x, y, effectOffset + 54, 9 * hardcoreOffset, 9, 9);
@@ -132,6 +134,7 @@ public class HealthRenderer {
                 }
             }
 
+            // Absorption
             if (absorptionCount > 0) {
                 if (absorptionCount == absorption && absorption % 2 == 1) {
                     hud.blit(x, y, effectOffset + 153, 9 * hardcoreOffset, 9, 9);
@@ -169,15 +172,16 @@ public class HealthRenderer {
             int value = i * 2 + 1;
             int regenOffset = !absorption && (i - (10 * (i / 10))) == regenHealth ? -2 : 0;
             int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.length : HealthOverlay.healthColors.length);
-            Color heartColor = (absorption ? HealthOverlay.absorptionColors : HealthOverlay.healthColors)[typeOffset];
+            GLColor heartColor = (absorption ? HealthOverlay.absorptionColors : HealthOverlay.healthColors)[typeOffset];
 
             int yPos = yPosition + regenOffset;
             int xPos = xPosition + i % 10 * 8;
 
+            // Color the hearts with a mixed color when an effect is active
             if (this.player.hasStatusEffect(StatusEffects.POISON)) {
-                color(multiply(heartColor, new Color(35, 97, 36), 150));
+                color(multiply(heartColor, new GLColor(35, 97, 36), 150));
             } else if (this.player.hasStatusEffect(StatusEffects.WITHER)) {
-                color(multiply(heartColor, new Color(20, 20, 20), 200));
+                color(multiply(heartColor, new GLColor(20, 20, 20), 200));
             } else color(heartColor);
 
             // Full heart
@@ -224,14 +228,14 @@ public class HealthRenderer {
         this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
     }
 
-    private Color multiply(Color color1, Color color2, int multiply) {
+    private GLColor multiply(GLColor color1, GLColor color2, int multiply) {
         float red = (color1.getRed() * color2.getRed()) * multiply;
         float green = (color1.getGreen() * color2.getGreen()) * multiply;
         float blue = (color1.getBlue() * color1.getBlue()) * multiply;
-        return new Color(red, green, blue);
+        return new GLColor(red, green, blue);
     }
 
-    private void color(Color color) {
+    private void color(GLColor color) {
         GlStateManager.color4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 
