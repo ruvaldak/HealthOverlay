@@ -9,7 +9,7 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.SystemUtil;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Random;
@@ -36,7 +36,7 @@ public class HealthRenderer {
 
         int currentHealth = MathHelper.ceil(player.getHealth());
         boolean highlight = this.healthTicks > (long) ticks && (this.healthTicks - (long) ticks) / 3L % 2L == 1L;
-        long systemTime = SystemUtil.getMeasuringTimeMs();
+        long systemTime = Util.getMeasuringTimeMs();
         if (currentHealth < this.health && player.timeUntilRegen > 0) {
             this.prevSystemTime = systemTime;
             this.healthTicks = (ticks + 20);
@@ -54,9 +54,9 @@ public class HealthRenderer {
         this.health = currentHealth;
         int previousHealth = this.prevHealth;
         this.random.setSeed(ticks * 312871);
-        int xPos = this.client.window.getScaledWidth() / 2 - 91;
-        int yPos = this.client.window.getScaledHeight() - 39;
-        float maxHealth = player.getHealthMaximum();
+        int xPos = this.client.getWindow().getScaledWidth() / 2 - 91;
+        int yPos = this.client.getWindow().getScaledHeight() - 39;
+        float maxHealth = player.getMaximumHealth();
         int absorption = MathHelper.ceil(player.getAbsorptionAmount());
 
         currentHealth = Math.min(currentHealth, 20);
