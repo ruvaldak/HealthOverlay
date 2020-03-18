@@ -10,9 +10,9 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle'
 
-def minecraft_version = "1.14.4"
-def forge_version = "28.2.3"
-def mappings_version = ["snapshot", "20190719-1.14.3"]
+def minecraft_version = "1.15.2"
+def forge_version = "31.1.25"
+def mappings_version = ["snapshot", "20200225-1.15.1"]
 
 version = '1.0.0'
 group = 'terrails.healthoverlay'
@@ -26,7 +26,7 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run')
-         //   property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -38,7 +38,7 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-         //   property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -59,9 +59,9 @@ repositories {
 */
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-//    runtimeOnly fg.deobf("terrails.statskeeper:StatsKeeper:1.14.4-4.2.4")
+    minecraft 'net.minecraftforge:forge:1.15.2-31.1.25'
+	
+//    runtimeOnly fg.deobf("terrails.statskeeper:StatsKeeper:1.15.2-4.2.4")
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

@@ -59,8 +59,8 @@ public class HealthRenderer {
         this.health = currentHealth;
         int previousHealth = this.prevHealth;
         this.random.setSeed(ticks * 312871);
-        int xPos = this.client.mainWindow.getScaledWidth() / 2 - 91;
-        int yPos = this.client.mainWindow.getScaledHeight() - 39;
+        int xPos = this.client.getMainWindow().getScaledWidth() / 2 - 91;
+        int yPos = this.client.getMainWindow().getScaledHeight() - 39;
         float maxHealth = player.getMaxHealth();
         int absorption = MathHelper.ceil(player.getAbsorptionAmount());
 
