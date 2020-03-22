@@ -102,7 +102,7 @@ public class HealthRenderer {
             }
 
             // Regular half heart background
-            if ((value % 2 == 1 && value == maxHealth) || absorptionCount == absorption && absorption % 2 == 1) {
+            if ((value % 2 == 1 && value == maxHealth) || (absorptionCount == absorption && absorption % 2 == 1)) {
                 this.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
                 hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
                 this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
