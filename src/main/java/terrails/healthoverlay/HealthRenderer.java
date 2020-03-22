@@ -1,6 +1,6 @@
 package terrails.healthoverlay;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -21,6 +21,7 @@ public class HealthRenderer {
 
     private static final Identifier HEALTH_ICONS_LOCATION = new Identifier("healthoverlay:textures/health.png");
     private static final Identifier ABSORPTION_ICONS_LOCATION = new Identifier("healthoverlay:textures/absorption.png");
+    private static final Identifier HALF_HEART_ICONS_LOCATION = new Identifier("healthoverlay:textures/half_heart.png");
 
     private MinecraftClient client = MinecraftClient.getInstance();
     private InGameHud hud = client.inGameHud;
@@ -100,23 +101,9 @@ public class HealthRenderer {
                 y -= 2;
             }
 
-            /*
-            == Ghost hearts ==
-            this.client.getTextureManager().bindTexture(HEART_ICONS_LOCATION);
-            for (int j = MathHelper.ceil((20.0F - float_1) / 2.0F) - 1; j >= 0 && int_17 == 0 && HealthRendererConfiguration.GHOST_HEARTS; --j) {
-                int jx = int_4 + (MathHelper.ceil((float_1) / 2.0f) + j) % 10 * 8;
-                hud.blit(jx, int_6 - (int_12 > 0 ? 10 : 0), 0, 0, 9, 9);
-            }
-            this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
-            */
-
             // Regular half heart background
-            if (value % 2 == 1 && value == maxHealth) {
-                this.client.getTextureManager().bindTexture(HEALTH_ICONS_LOCATION);
-                hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
-                this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
-            } else if (absorptionCount == absorption && absorption % 2 == 1) {
-                this.client.getTextureManager().bindTexture(ABSORPTION_ICONS_LOCATION);
+            if ((value % 2 == 1 && value == maxHealth) || absorptionCount == absorption && absorption % 2 == 1) {
+                this.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
                 hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
                 this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
             } else {
@@ -161,27 +148,35 @@ public class HealthRenderer {
     private void renderHearts(int xPosition, int yPosition, int regenHealth, boolean absorption) {
         if (absorption && (player.hasStatusEffect(StatusEffects.POISON) || player.hasStatusEffect(StatusEffects.WITHER)))
             return;
-        int yTex = 9;
-        int xTex = this.player.world.getLevelProperties().isHardcore() ? 18 : 0;
-        int currentValue = MathHelper.ceil(absorption ? this.player.getAbsorptionAmount() : this.player.getHealth()) - 20;
+        int yTex = player.world.getLevelProperties().isHardcore() ? (absorption ? 18 : 45) : 0;
+        int xTex = 0;
+        int currentValue = MathHelper.ceil(absorption ? player.getAbsorptionAmount() : player.getHealth()) - 20;
         if (currentValue < 0) return;
 
         this.client.getTextureManager().bindTexture(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
+        int prevType = 0;
         for (int i = 0; i < MathHelper.ceil(currentValue / 2.0F); ++i) {
-            GlStateManager.clearCurrentColor();
+            RenderSystem.clearCurrentColor();
+            RenderSystem.enableBlend();
             int value = i * 2 + 1;
             int regenOffset = !absorption && (i - (10 * (i / 10))) == regenHealth ? -2 : 0;
+
             int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.length : HealthOverlay.healthColors.length);
             GLColor heartColor = (absorption ? HealthOverlay.absorptionColors : HealthOverlay.healthColors)[typeOffset];
+            if (typeOffset > prevType + 1 || typeOffset < prevType - 1) prevType = typeOffset;
 
             int yPos = yPosition + regenOffset;
             int xPos = xPosition + i % 10 * 8;
 
             // Color the hearts with a mixed color when an effect is active
-            if (this.player.hasStatusEffect(StatusEffects.POISON)) {
-                color(multiply(heartColor, new GLColor(35, 97, 36), 150));
-            } else if (this.player.hasStatusEffect(StatusEffects.WITHER)) {
-                color(multiply(heartColor, new GLColor(20, 20, 20), 200));
+            if (player.hasStatusEffect(StatusEffects.POISON)) {
+                xTex = 18;
+                color(prevType != typeOffset ? HealthOverlay.poisonColors[0] : HealthOverlay.poisonColors[1]);
+                //color(multiply(heartColor, new GLColor(/*35*/204, /*97*/204, /*36*/0), 150));
+            } else if (player.hasStatusEffect(StatusEffects.WITHER)) {
+                xTex = 36;
+                color(prevType != typeOffset ? HealthOverlay.witherColors[0] : HealthOverlay.witherColors[1]);
+                //color(multiply(heartColor, new GLColor(1, 1, 1), 50));
             } else color(heartColor);
 
             // Full heart
@@ -190,18 +185,23 @@ public class HealthRenderer {
                 // Render heart
                 hud.blit(xPos, yPos, xTex, yTex, 9, 9);
 
-                // Add shading
-                colorAlpha(0.22F);
-                hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+                if (player.hasStatusEffect(StatusEffects.WITHER)) {
+                    colorAlpha(1);
+                    hud.blit(xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                } else {
+                    // Add shading
+                    colorAlpha(0.22F);
+                    hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+                }
 
                 // Add hardcore overlay
-                if (xTex == 18) {
+                if (yTex == 45 || yTex == 18) {
                     colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex, yTex + 18, 9, 9);
+                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
                 } // Add white dot
                 else {
                     colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, 36, yTex, 9, 9);
+                    hud.blit(xPos, yPos, (absorption ? 36 : 54), yTex, 9, 9);
                 }
                 // Half heart
             } else if (value == currentValue) {
@@ -209,37 +209,36 @@ public class HealthRenderer {
                 // Render heart
                 hud.blit(xPos, yPos, xTex + 9, yTex, 9, 9);
 
-                // Add shading
-                colorAlpha(0.22F);
-                hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+                if (player.hasStatusEffect(StatusEffects.WITHER)) {
+                    colorAlpha(1);
+                    hud.blit(xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                } else {
+                    // Add shading
+                    colorAlpha(0.22F);
+                    hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+                }
 
                 // Add hardcore overlay
-                if (xTex == 18) {
+                if (yTex == 45 || yTex == 18) {
                     colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex + 9, yTex + 18, 9, 9);
+                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
                 } // Add white dot
                 else {
                     colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, 36, yTex, 9, 9);
+                    hud.blit(xPos, yPos, (absorption ? 36 : 54) + 9, yTex, 9, 9);
                 }
             }
         }
-        GlStateManager.clearCurrentColor();
+        RenderSystem.clearCurrentColor();
+        RenderSystem.disableBlend();
         this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
     }
 
-    private GLColor multiply(GLColor color1, GLColor color2, int multiply) {
-        float red = (color1.getRed() * color2.getRed()) * multiply;
-        float green = (color1.getGreen() * color2.getGreen()) * multiply;
-        float blue = (color1.getBlue() * color1.getBlue()) * multiply;
-        return new GLColor(red, green, blue);
-    }
-
     private void color(GLColor color) {
-        GlStateManager.color4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+        RenderSystem.color4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 
     private void colorAlpha(float alpha) {
-        GlStateManager.color4f(1, 1, 1, alpha);
+        RenderSystem.color4f(1, 1, 1, alpha);
     }
 }
