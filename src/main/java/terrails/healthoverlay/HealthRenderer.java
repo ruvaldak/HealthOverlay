@@ -9,7 +9,7 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.SystemUtil;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Random;
@@ -21,6 +21,7 @@ public class HealthRenderer {
 
     private static final Identifier HEALTH_ICONS_LOCATION = new Identifier("healthoverlay:textures/health.png");
     private static final Identifier ABSORPTION_ICONS_LOCATION = new Identifier("healthoverlay:textures/absorption.png");
+    private static final Identifier HALF_HEART_ICONS_LOCATION = new Identifier("healthoverlay:textures/half_heart.png");
 
     private MinecraftClient client = MinecraftClient.getInstance();
     private InGameHud hud = client.inGameHud;
@@ -36,7 +37,7 @@ public class HealthRenderer {
 
         int currentHealth = MathHelper.ceil(player.getHealth());
         boolean highlight = this.healthTicks > (long) ticks && (this.healthTicks - (long) ticks) / 3L % 2L == 1L;
-        long systemTime = SystemUtil.getMeasuringTimeMs();
+        long systemTime = Util.getMeasuringTimeMs();
         if (currentHealth < this.health && player.timeUntilRegen > 0) {
             this.prevSystemTime = systemTime;
             this.healthTicks = (ticks + 20);
@@ -56,7 +57,7 @@ public class HealthRenderer {
         this.random.setSeed(ticks * 312871);
         int xPos = this.client.window.getScaledWidth() / 2 - 91;
         int yPos = this.client.window.getScaledHeight() - 39;
-        float maxHealth = player.getHealthMaximum();
+        float maxHealth = player.getMaximumHealth();
         int absorption = MathHelper.ceil(player.getAbsorptionAmount());
 
         currentHealth = Math.min(currentHealth, 20);
@@ -100,23 +101,9 @@ public class HealthRenderer {
                 y -= 2;
             }
 
-            /*
-            == Ghost hearts ==
-            this.client.getTextureManager().bindTexture(HEART_ICONS_LOCATION);
-            for (int j = MathHelper.ceil((20.0F - float_1) / 2.0F) - 1; j >= 0 && int_17 == 0 && HealthRendererConfiguration.GHOST_HEARTS; --j) {
-                int jx = int_4 + (MathHelper.ceil((float_1) / 2.0f) + j) % 10 * 8;
-                hud.blit(jx, int_6 - (int_12 > 0 ? 10 : 0), 0, 0, 9, 9);
-            }
-            this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
-            */
-
             // Regular half heart background
-            if (value % 2 == 1 && value == maxHealth) {
-                this.client.getTextureManager().bindTexture(HEALTH_ICONS_LOCATION);
-                hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
-                this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
-            } else if (absorptionCount == absorption && absorption % 2 == 1) {
-                this.client.getTextureManager().bindTexture(ABSORPTION_ICONS_LOCATION);
+            if ((value % 2 == 1 && value == maxHealth) || (absorptionCount == absorption && absorption % 2 == 1)) {
+                this.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
                 hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
                 this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
             } else {
@@ -158,30 +145,39 @@ public class HealthRenderer {
         this.renderHearts(xPos, yPos - rowHeight, regenHealth, true);
     }
 
+
     private void renderHearts(int xPosition, int yPosition, int regenHealth, boolean absorption) {
         if (absorption && (player.hasStatusEffect(StatusEffects.POISON) || player.hasStatusEffect(StatusEffects.WITHER)))
             return;
-        int yTex = 9;
-        int xTex = this.player.world.getLevelProperties().isHardcore() ? 18 : 0;
-        int currentValue = MathHelper.ceil(absorption ? this.player.getAbsorptionAmount() : this.player.getHealth()) - 20;
+        int yTex = player.world.getLevelProperties().isHardcore() ? (absorption ? 18 : 45) : 0;
+        int xTex = 0;
+        int currentValue = MathHelper.ceil(absorption ? player.getAbsorptionAmount() : player.getHealth()) - 20;
         if (currentValue < 0) return;
 
         this.client.getTextureManager().bindTexture(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
+        int prevType = 0;
         for (int i = 0; i < MathHelper.ceil(currentValue / 2.0F); ++i) {
             GlStateManager.clearCurrentColor();
+            GlStateManager.enableBlend();
             int value = i * 2 + 1;
             int regenOffset = !absorption && (i - (10 * (i / 10))) == regenHealth ? -2 : 0;
+
             int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.length : HealthOverlay.healthColors.length);
             GLColor heartColor = (absorption ? HealthOverlay.absorptionColors : HealthOverlay.healthColors)[typeOffset];
+            if (typeOffset > prevType + 1 || typeOffset < prevType - 1) prevType = typeOffset;
 
             int yPos = yPosition + regenOffset;
             int xPos = xPosition + i % 10 * 8;
 
             // Color the hearts with a mixed color when an effect is active
-            if (this.player.hasStatusEffect(StatusEffects.POISON)) {
-                color(multiply(heartColor, new GLColor(35, 97, 36), 150));
-            } else if (this.player.hasStatusEffect(StatusEffects.WITHER)) {
-                color(multiply(heartColor, new GLColor(20, 20, 20), 200));
+            if (player.hasStatusEffect(StatusEffects.POISON)) {
+                xTex = 18;
+                color(prevType != typeOffset ? HealthOverlay.poisonColors[0] : HealthOverlay.poisonColors[1]);
+                //color(multiply(heartColor, new GLColor(/*35*/204, /*97*/204, /*36*/0), 150));
+            } else if (player.hasStatusEffect(StatusEffects.WITHER)) {
+                xTex = 36;
+                color(prevType != typeOffset ? HealthOverlay.witherColors[0] : HealthOverlay.witherColors[1]);
+                //color(multiply(heartColor, new GLColor(1, 1, 1), 50));
             } else color(heartColor);
 
             // Full heart
@@ -190,18 +186,23 @@ public class HealthRenderer {
                 // Render heart
                 hud.blit(xPos, yPos, xTex, yTex, 9, 9);
 
-                // Add shading
-                colorAlpha(0.22F);
-                hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+                if (player.hasStatusEffect(StatusEffects.WITHER)) {
+                    colorAlpha(1);
+                    hud.blit(xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                } else {
+                    // Add shading
+                    colorAlpha(0.22F);
+                    hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+                }
 
                 // Add hardcore overlay
-                if (xTex == 18) {
+                if (yTex == 45 || yTex == 18) {
                     colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex, yTex + 18, 9, 9);
+                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
                 } // Add white dot
                 else {
                     colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, 36, yTex, 9, 9);
+                    hud.blit(xPos, yPos, (absorption ? 36 : 54), yTex, 9, 9);
                 }
                 // Half heart
             } else if (value == currentValue) {
@@ -209,30 +210,29 @@ public class HealthRenderer {
                 // Render heart
                 hud.blit(xPos, yPos, xTex + 9, yTex, 9, 9);
 
-                // Add shading
-                colorAlpha(0.22F);
-                hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+                if (player.hasStatusEffect(StatusEffects.WITHER)) {
+                    colorAlpha(1);
+                    hud.blit(xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                } else {
+                    // Add shading
+                    colorAlpha(0.22F);
+                    hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+                }
 
                 // Add hardcore overlay
-                if (xTex == 18) {
+                if (yTex == 45 || yTex == 18) {
                     colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex + 9, yTex + 18, 9, 9);
+                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
                 } // Add white dot
                 else {
                     colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, 36, yTex, 9, 9);
+                    hud.blit(xPos, yPos, (absorption ? 36 : 54) + 9, yTex, 9, 9);
                 }
             }
         }
         GlStateManager.clearCurrentColor();
+        GlStateManager.disableBlend();
         this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
-    }
-
-    private GLColor multiply(GLColor color1, GLColor color2, int multiply) {
-        float red = (color1.getRed() * color2.getRed()) * multiply;
-        float green = (color1.getGreen() * color2.getGreen()) * multiply;
-        float blue = (color1.getBlue() * color1.getBlue()) * multiply;
-        return new GLColor(red, green, blue);
     }
 
     private void color(GLColor color) {
