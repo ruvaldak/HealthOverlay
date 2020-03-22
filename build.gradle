@@ -1,14 +1,14 @@
 plugins {
-    id 'fabric-loom' version '0.2.7-SNAPSHOT'
+    id 'fabric-loom' version '0.2.6-SNAPSHOT'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-def minecraft_version = "1.15"
-def yarn_version = "1.15+build.2:v2"
-def loader_version = "0.7.2+build.174"
-def fabric_version = "0.4.24+build.279-1.15"
+def minecraft_version = "1.15.2"
+def yarn_version = "1.15.2+build.14"
+def loader_version = "0.7.8+build.189"
+def fabric_version = "0.5.1+build.294-1.15"
 
 archivesBaseName = "HealthOverlay-${minecraft_version}"
 version = "2.2.10"
@@ -17,14 +17,21 @@ group = "terrails.healthoverlay"
 minecraft {
 }
 
+repositories {
+//    flatDir {
+//        dirs "libs/"
+//    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings "net.fabricmc:yarn:${yarn_version}"
+    mappings "net.fabricmc:yarn:${yarn_version}:v2"
     modImplementation "net.fabricmc:fabric-loader:${loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
     // ModMenu
-    modRuntime ("io.github.prospector:modmenu:1.8.0.1.15-pre6+build.15") { transitive = false }
+    modRuntime ("io.github.prospector:modmenu:1.10.2+build.32") { transitive = false }
+//    modRuntime "terrails.statskeeper:StatsKeeper:1.15-1.1.4"
 
     // Fiber Config
     modApi "me.zeroeightsix:fiber:0.8.0-SNAPSHOT"

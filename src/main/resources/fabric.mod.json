@@ -9,8 +9,8 @@
     "Terrails"
   ],
   "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/health-overlay",
-    "issues": "https://github.com/Terrails/Health-Overlay/issues"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/health-overlay-fabric",
+    "issues": "https://github.com/Terrails/Health-Overlay"
   },
 
   "license": "Apache-2.0",
@@ -28,7 +28,7 @@
   },
 
   "depends": {
-    "fabricloader": ">=0.4.0",
+    "fabricloader": ">=0.7.4",
     "fabric": "*"
   },
 
