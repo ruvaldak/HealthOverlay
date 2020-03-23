@@ -10,6 +10,7 @@ import net.minecraft.potion.Effects;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.client.ForgeIngameGui;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -72,6 +73,8 @@ public class HealthRenderer {
 
         int rowHeight = 10;
         int regenHealth = -1;
+        // Armor gets rendered in the same row as health if this isn't set
+        ForgeIngameGui.left_height += rowHeight;
         if (player.isPotionActive(Effects.REGENERATION)) {
             regenHealth = ticks % MathHelper.ceil(maxHealth + 5.0F);
         }
