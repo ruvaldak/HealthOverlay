@@ -1,9 +1,12 @@
 package terrails.healthoverlay;
 
-import me.zeroeightsix.fiber.exception.FiberException;
-import me.zeroeightsix.fiber.serialization.JanksonSerializer;
-import me.zeroeightsix.fiber.tree.ConfigNode;
-import me.zeroeightsix.fiber.tree.ConfigValue;
+import io.github.fablabsmc.fablabs.api.fiber.v1.builder.ConfigTreeBuilder;
+import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationException;
+import io.github.fablabsmc.fablabs.api.fiber.v1.schema.type.derived.ConfigTypes;
+import io.github.fablabsmc.fablabs.api.fiber.v1.schema.type.derived.ListConfigType;
+import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.FiberSerialization;
+import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.JanksonValueSerializer;
+import io.github.fablabsmc.fablabs.api.fiber.v1.tree.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
@@ -11,75 +14,82 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class HealthOverlay implements ClientModInitializer {
 
     public static final Logger LOGGER = LogManager.getLogger("HealthOverlay");
 
-    public static GLColor[] healthColors;
-    public static GLColor[] poisonColors;
-    public static GLColor[] witherColors;
+    private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDirectory(), "healthoverlay.json5");
+    private static final JanksonValueSerializer CONFIG_SERIALIZER = new JanksonValueSerializer(false);
+    private static final ConfigBranch CONFIG_NODE;
 
-    public static GLColor[] absorptionColors;
+    // Two dimensional array RGB for each row
+    public static final PropertyMirror<int[][]> healthColors;
+    public static final PropertyMirror<int[][]> absorptionColors;
+
+    public static final PropertyMirror<int[][]> poisonColors;
+    public static final PropertyMirror<int[][]> witherColors;
+
+    static {
+        ListConfigType<int[][], List<BigDecimal>> TWO_DIMENSIONAL_ARRAY = ConfigTypes.makeArray(ConfigTypes.makeIntArray(ConfigTypes.INTEGER.withValidRange(0, 255, 1)).withMinSize(3).withMaxSize(3));
+
+        healthColors = PropertyMirror.create(TWO_DIMENSIONAL_ARRAY);
+        absorptionColors = PropertyMirror.create(TWO_DIMENSIONAL_ARRAY);
+        poisonColors = PropertyMirror.create(TWO_DIMENSIONAL_ARRAY);
+        witherColors = PropertyMirror.create(TWO_DIMENSIONAL_ARRAY);
+
+        ConfigTreeBuilder tree = ConfigTree.builder();
+
+        tree.beginValue("health_colors", TWO_DIMENSIONAL_ARRAY, new int[][] {
+                {240, 110, 20}, {245, 220, 35}, {45, 185, 40}, {30, 175, 190}, {115, 70, 225},
+                {250, 125, 235}, {235, 55, 90}, {255, 130, 120}, {170, 255, 250}, {235, 235, 255}
+        }).withComment("Colors for each new row of health [R, G, B]").finishValue(healthColors::mirror);
+
+        tree.beginValue("absorption_colors", TWO_DIMENSIONAL_ARRAY, new int[][] {
+                {225, 250, 155}, {160, 255, 175}, {170, 255, 250}, {170, 205, 255}, {215, 180, 255},
+                {250, 165, 255}, {255, 180, 180}, {255, 170, 125}, {215, 240, 255}, {235, 255, 250}
+        }).withComment("Colors for each new row of absorption [R, G, B]").finishValue(absorptionColors::mirror);
+
+        tree.beginValue("poison_colors", TWO_DIMENSIONAL_ARRAY.withMinSize(2).withMaxSize(2), new int[][] {
+                {115, 155, 0}, {150, 205, 0}
+        }).withComment("Colors for two different rows when poisoned for easier distinction [R, G, B]").finishValue(poisonColors::mirror);
+
+        tree.beginValue("wither_colors", TWO_DIMENSIONAL_ARRAY.withMinSize(2).withMaxSize(2), new int[][] {
+                {15, 15, 15}, {45, 45, 45}
+        }).withComment("Colors for two different rows when withered for easier distinction [R, G, B]").finishValue(witherColors::mirror);
+
+        CONFIG_NODE = tree.build();
+    }
 
     @Override
     public void onInitializeClient() {
-        ConfigNode node = new ConfigNode();
-
-        ConfigValue<String[]> healthRGB = ConfigValue.builder(String[].class)
-                .withName("healthColors")
-                .withParent(node)
-                .withDefaultValue(new String[]{
-                        "240,110,20", "245,220,35", "45,185,40", "30,175,190", "115,70,225",
-                        "250,125,235", "235,55,90", "255,130,120", "170,255,250", "235,235,255"
-                }).build();
-
-        ConfigValue<String[]> poisonRGB = ConfigValue.builder(String[].class)
-                .withName("alternatingPoisonedColors")
-                .withParent(node)
-                .withDefaultValue(new String[]{
-                        "115,155,0", "150,205,0"
-                }).build();
-
-        ConfigValue<String[]> witherRGB = ConfigValue.builder(String[].class)
-                .withName("alternatingWitheredColors")
-                .withParent(node)
-                .withDefaultValue(new String[]{
-                        "15,15,15", "45,45,45"
-                }).build();
-
-        ConfigValue<String[]> absorptionRGB = ConfigValue.builder(String[].class)
-                .withName("absorptionColors")
-                .withParent(node)
-                .withDefaultValue(new String[]{
-                        "225,250,155", "160,255,175", "170,255,250", "170,205,255", "215,180,255",
-                        "250,165,255", "255,180,180", "255,170,125", "215,240,255", "235,255,250"
-                }).build();
-
-        JanksonSerializer config = new JanksonSerializer();
-
         boolean recreate = false;
         while (true) {
             try {
-                File file = new File(FabricLoader.getInstance().getConfigDirectory(), "healthoverlay.json");
-                if (!file.exists() || recreate) {
-                    config.serialize(node, Files.newOutputStream(file.toPath()));
-                    LOGGER.info("Successfully created the config file in '{}'", file.toString());
+                if (!CONFIG_FILE.exists() || recreate) {
+                    FiberSerialization.serialize(CONFIG_NODE, Files.newOutputStream(CONFIG_FILE.toPath()), CONFIG_SERIALIZER);
+                    LOGGER.info("Successfully created the config file in '{}'", CONFIG_FILE.toString());
                     break;
                 } else {
                     try {
-                        config.deserialize(node, Files.newInputStream(file.toPath()));
+                        FiberSerialization.deserialize(CONFIG_NODE, Files.newInputStream(CONFIG_FILE.toPath()), CONFIG_SERIALIZER);
+
+                        // Checks values and makes a copy of the config file before fixing the errors via the next method call
+                        //          ....
+
                         // Load current values and write to the file again in case a new value was added
-                        config.serialize(node, Files.newOutputStream(file.toPath()));
+                        // TODO: Add some kind of error checking to the values in the file and rename the file before loading the corrected values from the branch
+                        // FiberSerialization.serialize(branch, Files.newOutputStream(file.toPath()), serializer);
                         break;
-                    } catch (FiberException e) {
-                        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"));
-                        String fileName = ("healthoverlay-" + time + ".json");
+                    } catch (ValueDeserializationException e) {
+                        String fileName = ("healthoverlay-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss")) + ".json5");
                         LOGGER.error("Found a syntax error in the config.");
-                        if (file.renameTo(new File(file.getParent(), fileName))) { LOGGER.info("Config file successfully renamed to '{}'.", fileName); }
+                        if (CONFIG_FILE.renameTo(new File(CONFIG_FILE.getParent(), fileName))) { LOGGER.info("Config file successfully renamed to '{}'.", fileName); }
                         recreate = true;
                         e.printStackTrace();
                     }
@@ -89,25 +99,5 @@ public class HealthOverlay implements ClientModInitializer {
                 break;
             }
         }
-
-        healthColors = getColors(healthRGB.getValue());
-        poisonColors = getColors(poisonRGB.getValue());
-        witherColors = getColors(witherRGB.getValue());
-        absorptionColors = getColors(absorptionRGB.getValue());
-    }
-
-    private static GLColor[] getColors(String[] heartValues) {
-        GLColor[] heartColors = new GLColor[10];
-        if (heartValues != null) {
-            if (heartColors.length != heartValues.length) { heartColors = new GLColor[heartValues.length]; }
-            for (int i = 0; i < heartValues.length; i++) {
-                String[] values = heartValues[i].split(",");
-                values[0] = values[0].replaceAll("\\s+","");
-                values[1] = values[1].replaceAll("\\s+","");
-                values[2] = values[2].replaceAll("\\s+","");
-                heartColors[i] = new GLColor(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]), 255);
-            }
-        }
-        return heartColors;
     }
 }

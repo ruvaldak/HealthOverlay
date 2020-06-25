@@ -6,11 +6,14 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
 
 import java.util.Random;
 
@@ -23,16 +26,14 @@ public class HealthRenderer {
     private static final Identifier ABSORPTION_ICONS_LOCATION = new Identifier("healthoverlay:textures/absorption.png");
     private static final Identifier HALF_HEART_ICONS_LOCATION = new Identifier("healthoverlay:textures/half_heart.png");
 
-    private MinecraftClient client = MinecraftClient.getInstance();
-    private InGameHud hud = client.inGameHud;
-    private Random random = new Random();
-    private PlayerEntity player;
+    private final MinecraftClient client = MinecraftClient.getInstance();
+    private final InGameHud hud = client.inGameHud;
+    private final Random random = new Random();
 
     private int prevHealth, health;
     private long prevSystemTime, healthTicks;
 
-    public void render(PlayerEntity player) {
-        this.player = player;
+    public void render(MatrixStack matrixStack, PlayerEntity player) {
         int ticks = hud.getTicks();
 
         int currentHealth = MathHelper.ceil(player.getHealth());
@@ -57,7 +58,7 @@ public class HealthRenderer {
         this.random.setSeed(ticks * 312871);
         int xPos = this.client.getWindow().getScaledWidth() / 2 - 91;
         int yPos = this.client.getWindow().getScaledHeight() - 39;
-        float maxHealth = player.getMaximumHealth();
+        float maxHealth = player.getMaxHealth();
         int absorption = MathHelper.ceil(player.getAbsorptionAmount());
 
         currentHealth = Math.min(currentHealth, 20);
@@ -104,48 +105,48 @@ public class HealthRenderer {
             // Regular half heart background
             if ((value % 2 == 1 && value == maxHealth) || (absorptionCount == absorption && absorption % 2 == 1)) {
                 this.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
-                hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
-                this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
+                drawTexture(matrixStack, x, y, (highlight ? 1 : 0) * 9, 0);
+                this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_TEXTURE);
             } else {
-                hud.blit(x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset, 9, 9);
+                drawTexture(matrixStack, x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset);
             }
 
             // Highlight when damaged / regenerating
             if (highlight) {
                 if (value < previousHealth) {
-                    hud.blit(x, y, effectOffset + 54, 9 * hardcoreOffset, 9, 9);
+                    drawTexture(matrixStack, x, y, effectOffset + 54, 9 * hardcoreOffset);
                 }
 
                 if (value == previousHealth) {
-                    hud.blit(x, y, effectOffset + 63, 9 * hardcoreOffset, 9, 9);
+                    drawTexture(matrixStack, x, y, effectOffset + 63, 9 * hardcoreOffset);
                 }
             }
 
             // Absorption
             if (absorptionCount > 0) {
                 if (absorptionCount == absorption && absorption % 2 == 1) {
-                    hud.blit(x, y, effectOffset + 153, 9 * hardcoreOffset, 9, 9);
+                    drawTexture(matrixStack, x, y, effectOffset + 153, 9 * hardcoreOffset);
                     --absorptionCount;
                 } else {
-                    hud.blit(x, y, effectOffset + 144, 9 * hardcoreOffset, 9, 9);
+                    drawTexture(matrixStack, x, y, effectOffset + 144, 9 * hardcoreOffset);
                     absorptionCount -= 2;
                 }
             } else {
                 if (value < currentHealth) {
-                    hud.blit(x, y, effectOffset + 36, 9 * hardcoreOffset, 9, 9);
+                    drawTexture(matrixStack, x, y, effectOffset + 36, 9 * hardcoreOffset);
                 }
 
                 if (value == currentHealth) {
-                    hud.blit(x, y, effectOffset + 45, 9 * hardcoreOffset, 9, 9);
+                    drawTexture(matrixStack, x, y, effectOffset + 45, 9 * hardcoreOffset);
                 }
             }
         }
 
-        this.renderHearts(xPos, yPos, regenHealth, false);
-        this.renderHearts(xPos, yPos - rowHeight, regenHealth, true);
+        this.renderHearts(matrixStack, player, xPos, yPos, regenHealth, false);
+        this.renderHearts(matrixStack, player, xPos, yPos - rowHeight, regenHealth, true);
     }
 
-    private void renderHearts(int xPosition, int yPosition, int regenHealth, boolean absorption) {
+    private void renderHearts(MatrixStack matrixStack, PlayerEntity player,  int xPosition, int yPosition, int regenHealth, boolean absorption) {
         if (absorption && (player.hasStatusEffect(StatusEffects.POISON) || player.hasStatusEffect(StatusEffects.WITHER)))
             return;
         int yTex = player.world.getLevelProperties().isHardcore() ? (absorption ? 18 : 45) : 0;
@@ -153,92 +154,107 @@ public class HealthRenderer {
         int currentValue = MathHelper.ceil(absorption ? player.getAbsorptionAmount() : player.getHealth()) - 20;
         if (currentValue < 0) return;
 
+        RenderSystem.enableBlend();
         this.client.getTextureManager().bindTexture(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
         int prevType = 0;
         for (int i = 0; i < MathHelper.ceil(currentValue / 2.0F); ++i) {
-            RenderSystem.clearCurrentColor();
-            RenderSystem.enableBlend();
             int value = i * 2 + 1;
             int regenOffset = !absorption && (i - (10 * (i / 10))) == regenHealth ? -2 : 0;
 
-            int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.length : HealthOverlay.healthColors.length);
-            GLColor heartColor = (absorption ? HealthOverlay.absorptionColors : HealthOverlay.healthColors)[typeOffset];
+            int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.getValue().length : HealthOverlay.healthColors.getValue().length);
+            int[] heartColor = (absorption ? HealthOverlay.absorptionColors.getValue() : HealthOverlay.healthColors.getValue())[typeOffset];
             if (typeOffset > prevType + 1 || typeOffset < prevType - 1) prevType = typeOffset;
 
             int yPos = yPosition + regenOffset;
             int xPos = xPosition + i % 10 * 8;
 
-            // Color the hearts with a mixed color when an effect is active
+            // Color the hearts with a different color when an effect is active
             if (player.hasStatusEffect(StatusEffects.POISON)) {
                 xTex = 18;
-                color(prevType != typeOffset ? HealthOverlay.poisonColors[0] : HealthOverlay.poisonColors[1]);
-                //color(multiply(heartColor, new GLColor(/*35*/204, /*97*/204, /*36*/0), 150));
+                heartColor = (prevType != typeOffset) ? HealthOverlay.poisonColors.getValue()[0] : HealthOverlay.poisonColors.getValue()[1];
             } else if (player.hasStatusEffect(StatusEffects.WITHER)) {
                 xTex = 36;
-                color(prevType != typeOffset ? HealthOverlay.witherColors[0] : HealthOverlay.witherColors[1]);
-                //color(multiply(heartColor, new GLColor(1, 1, 1), 50));
-            } else color(heartColor);
+                heartColor = (prevType != typeOffset) ? HealthOverlay.witherColors.getValue()[0] : HealthOverlay.witherColors.getValue()[1];
+            }
 
             // Full heart
             if (value < currentValue) {
 
                 // Render heart
-                hud.blit(xPos, yPos, xTex, yTex, 9, 9);
+                drawTexture(matrixStack, xPos, yPos, xTex, yTex, heartColor);
 
                 if (player.hasStatusEffect(StatusEffects.WITHER)) {
-                    colorAlpha(1);
-                    hud.blit(xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 255);
                 } else {
                     // Add shading
-                    colorAlpha(0.22F);
-                    hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, xTex, yTex + 9, 56);
                 }
 
                 // Add hardcore overlay
                 if (yTex == 45 || yTex == 18) {
-                    colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 178);
                 } // Add white dot
                 else {
-                    colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, (absorption ? 36 : 54), yTex, 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, (absorption ? 36 : 54), yTex, 255);
                 }
                 // Half heart
             } else if (value == currentValue) {
 
                 // Render heart
-                hud.blit(xPos, yPos, xTex + 9, yTex, 9, 9);
+                drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex, heartColor);
 
                 if (player.hasStatusEffect(StatusEffects.WITHER)) {
-                    colorAlpha(1);
-                    hud.blit(xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 255);
                 } else {
                     // Add shading
-                    colorAlpha(0.22F);
-                    hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex + 9, 56);
                 }
 
                 // Add hardcore overlay
                 if (yTex == 45 || yTex == 18) {
-                    colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 178);
                 } // Add white dot
                 else {
-                    colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, (absorption ? 36 : 54) + 9, yTex, 9, 9);
+                    drawTexture(matrixStack, xPos, yPos, (absorption ? 36 : 54) + 9, yTex, 255);
                 }
             }
         }
-        RenderSystem.clearCurrentColor();
         RenderSystem.disableBlend();
-        this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_LOCATION);
+        this.client.getTextureManager().bindTexture(DrawableHelper.GUI_ICONS_TEXTURE);
     }
 
-    private void color(GLColor color) {
-        RenderSystem.color4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+    private void drawTexture(MatrixStack matrices, int x, int y, int u, int v) {
+        drawTexture(matrices, x, y, u, v, 0, 0, 0, 0);
     }
 
-    private void colorAlpha(float alpha) {
-        RenderSystem.color4f(1, 1, 1, alpha);
+    private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int alpha) {
+        drawTexture(matrices, x, y, u, v, 255, 255, 255, alpha);
+    }
+
+    private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int[] color) {
+        drawTexture(matrices, x, y, u, v, color[0], color[1], color[2], 255);
+    }
+
+    private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int red, int green, int blue, int alpha) {
+        drawTexturedQuad(matrices.peek().getModel(),
+                x, x + 9,
+                y, y + 9,
+                this.hud.getZOffset(),
+                (u + 0.0F) / 256.0F, (u + (float) 9) / 256.0F,
+                (v + 0.0F) / 256.0F, (v + (float) 9) / 256.0F,
+                red, green, blue, alpha);
+    }
+
+    private static void drawTexturedQuad(Matrix4f matrices, int x0, int x1, int y0, int y1, int z, float u0, float u1, float v0, float v1, int red, int green, int blue, int alpha) {
+        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
+        bufferBuilder.begin(7, alpha != 0 ? VertexFormats.POSITION_COLOR_TEXTURE : VertexFormats.POSITION_TEXTURE);
+        bufferBuilder.vertex(matrices, (float) x0, (float) y1, (float) z).color(red, green, blue, alpha).texture(u0, v1).next();
+        bufferBuilder.vertex(matrices, (float) x1, (float) y1, (float) z).color(red, green, blue, alpha).texture(u1, v1).next();
+        bufferBuilder.vertex(matrices, (float) x1, (float) y0, (float) z).color(red, green, blue, alpha).texture(u1, v0).next();
+        bufferBuilder.vertex(matrices, (float) x0, (float) y0, (float) z).color(red, green, blue, alpha).texture(u0, v0).next();
+        bufferBuilder.end();
+        //noinspection deprecation
+        RenderSystem.enableAlphaTest();
+        BufferRenderer.draw(bufferBuilder);
     }
 }

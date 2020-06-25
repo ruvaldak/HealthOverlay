@@ -1,6 +1,7 @@
 package terrails.healthoverlay.mixin;
 
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
@@ -18,18 +19,18 @@ public abstract class InGameHudMixin {
     }
 
     @ModifyVariable(method = "renderStatusBars", at = @At(value = "STORE", ordinal = 0))
-    private float modifyMaxHealth(float float_1) {
-        return Math.min(20.0F, float_1);
+    private float modifyMaxHealth(float maxHealth) {
+        return Math.min(20.0F, maxHealth);
     }
 
     @ModifyVariable(method = "renderStatusBars", at = @At(value = "STORE"), ordinal = 6)
-    private int modifyAbsorption(int int_7) {
-        return Math.min(20, int_7);
+    private int modifyAbsorption(int absorption) {
+        return Math.min(20, absorption);
     }
 
     @Inject(method = "renderStatusBars", locals = LocalCapture.CAPTURE_FAILEXCEPTION,
             at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=health"))
-    private void render(CallbackInfo info, PlayerEntity player) {
-        HealthRenderer.INSTANCE.render(player);
+    private void render(MatrixStack matrixStack, CallbackInfo info, PlayerEntity player) {
+        HealthRenderer.INSTANCE.render(matrixStack, player);
     }
 }
