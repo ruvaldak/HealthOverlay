@@ -10,6 +10,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
@@ -162,7 +163,7 @@ public class HealthRenderer {
             int regenOffset = !absorption && (i - (10 * (i / 10))) == regenHealth ? -2 : 0;
 
             int typeOffset = (value / 20) % (absorption ? HealthOverlay.absorptionColors.getValue().length : HealthOverlay.healthColors.getValue().length);
-            int[] heartColor = (absorption ? HealthOverlay.absorptionColors.getValue() : HealthOverlay.healthColors.getValue())[typeOffset];
+            TextColor heartColor = (absorption ? HealthOverlay.absorptionColors.getValue() : HealthOverlay.healthColors.getValue())[typeOffset];
             if (typeOffset > prevType + 1 || typeOffset < prevType - 1) prevType = typeOffset;
 
             int yPos = yPosition + regenOffset;
@@ -231,8 +232,12 @@ public class HealthRenderer {
         drawTexture(matrices, x, y, u, v, 255, 255, 255, alpha);
     }
 
-    private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int[] color) {
-        drawTexture(matrices, x, y, u, v, color[0], color[1], color[2], 255);
+    private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, TextColor color) {
+        int rgb = color.getRgb();
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        drawTexture(matrices, x, y, u, v, r, g, b, 255);
     }
 
     private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int red, int green, int blue, int alpha) {
