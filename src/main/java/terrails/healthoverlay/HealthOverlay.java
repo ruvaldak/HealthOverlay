@@ -29,7 +29,6 @@ public class HealthOverlay implements ClientModInitializer {
     private static final JanksonValueSerializer CONFIG_SERIALIZER = new JanksonValueSerializer(false);
     private static final ConfigBranch CONFIG_NODE;
 
-    // Two dimensional array RGB for each row
     public static final PropertyMirror<TextColor[]> healthColors;
     public static final PropertyMirror<TextColor[]> absorptionColors;
 
@@ -48,7 +47,6 @@ public class HealthOverlay implements ClientModInitializer {
 
         ConfigTreeBuilder tree = ConfigTree.builder();
 
-        // 16777215 == #FFFFFF == (255,255,255)
         tree.beginValue("health_colors", COLOR, new TextColor[] {
                 TextColor.fromRgb(0xF06E14), TextColor.fromRgb(0xF5DC23), TextColor.fromRgb(0x2DB928), TextColor.fromRgb(0x1EAFBE), TextColor.fromRgb(0x7346E1),
                 TextColor.fromRgb(0xFA7DEB), TextColor.fromRgb(0xEB375A), TextColor.fromRgb(0xFF8278), TextColor.fromRgb(0xAAFFFA), TextColor.fromRgb(0xEBEBFF)
