@@ -151,7 +151,7 @@ public class HealthRenderer {
         int yTex = player.world.getLevelProperties().isHardcore() ? (absorption ? 18 : 45) : 0;
         int xTex = 0;
         int currentValue = MathHelper.ceil(absorption ? player.getAbsorptionAmount() : player.getHealth()) - 20;
-        if (currentValue < 0) return;
+        if (currentValue <= 0) return;
 
         this.client.getTextureManager().bindTexture(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
         int prevType = 0;

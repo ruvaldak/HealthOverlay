@@ -115,7 +115,7 @@ public class PlayerListHudRenderer {
         int yTex = 0;
         int xTex = 0;
         int currentValue = score - 20;
-        if (currentValue < 0) return;
+        if (currentValue <= 0) return;
 
         this.client.getTextureManager().bindTexture(HEALTH_ICONS_LOCATION);
         int prevType = 0;
