@@ -1,5 +1,6 @@
 package terrails.healthoverlay;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
@@ -32,6 +33,7 @@ public class HealthRenderer {
 
     @SubscribeEvent(priority = EventPriority.LOW)
     public void render(RenderGameOverlayEvent.Pre event) {
+        MatrixStack matrixStack = event.getMatrixStack();
         Entity renderEntity = client.getRenderViewEntity();
         if (event.getType() != RenderGameOverlayEvent.ElementType.HEALTH || !(renderEntity instanceof PlayerEntity) || event.isCanceled()
                 || HealthOverlay.healthColors.length == 0 || HealthOverlay.absorptionColors.length == 0) {
@@ -111,49 +113,49 @@ public class HealthRenderer {
             // Regular half heart background
             if ((value % 2 == 1 && value == maxHealth) || absorptionCount == absorption && absorption % 2 == 1) {
                 this.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
-                hud.blit(x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
-                this.client.getTextureManager().bindTexture(AbstractGui.GUI_ICONS_LOCATION);
+                hud.func_238474_b_(matrixStack, x, y, (highlight ? 1 : 0) * 9, 0, 9, 9);
+                this.client.getTextureManager().bindTexture(AbstractGui.field_230665_h_);
             } else {
-                hud.blit(x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset, 9, 9);
+                hud.func_238474_b_(matrixStack, x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset, 9, 9);
             }
 
             // Highlight when damaged / regenerating
             if (highlight) {
                 if (value < previousHealth) {
-                    hud.blit(x, y, effectOffset + 54, 9 * hardcoreOffset, 9, 9);
+                    hud.func_238474_b_(matrixStack, x, y, effectOffset + 54, 9 * hardcoreOffset, 9, 9);
                 }
 
                 if (value == previousHealth) {
-                    hud.blit(x, y, effectOffset + 63, 9 * hardcoreOffset, 9, 9);
+                    hud.func_238474_b_(matrixStack, x, y, effectOffset + 63, 9 * hardcoreOffset, 9, 9);
                 }
             }
 
             // Absorption
             if (absorptionCount > 0) {
                 if (absorptionCount == absorption && absorption % 2 == 1) {
-                    hud.blit(x, y, effectOffset + 153, 9 * hardcoreOffset, 9, 9);
+                    hud.func_238474_b_(matrixStack, x, y, effectOffset + 153, 9 * hardcoreOffset, 9, 9);
                     --absorptionCount;
                 } else {
-                    hud.blit(x, y, effectOffset + 144, 9 * hardcoreOffset, 9, 9);
+                    hud.func_238474_b_(matrixStack, x, y, effectOffset + 144, 9 * hardcoreOffset, 9, 9);
                     absorptionCount -= 2;
                 }
             } else {
                 if (value < currentHealth) {
-                    hud.blit(x, y, effectOffset + 36, 9 * hardcoreOffset, 9, 9);
+                    hud.func_238474_b_(matrixStack, x, y, effectOffset + 36, 9 * hardcoreOffset, 9, 9);
                 }
 
                 if (value == currentHealth) {
-                    hud.blit(x, y, effectOffset + 45, 9 * hardcoreOffset, 9, 9);
+                    hud.func_238474_b_(matrixStack, x, y, effectOffset + 45, 9 * hardcoreOffset, 9, 9);
                 }
             }
         }
 
-        this.renderHearts(player, xPos, yPos, regenHealth, false);
-        this.renderHearts(player, xPos, yPos - rowHeight, regenHealth, true);
+        this.renderHearts(matrixStack, player, xPos, yPos, regenHealth, false);
+        this.renderHearts(matrixStack, player, xPos, yPos - rowHeight, regenHealth, true);
         event.setCanceled(true);
     }
 
-    private void renderHearts(PlayerEntity player, int xPosition, int yPosition, int regenHealth, boolean absorption) {
+    private void renderHearts(MatrixStack matrixStack, PlayerEntity player, int xPosition, int yPosition, int regenHealth, boolean absorption) {
         if (absorption && (player.isPotionActive(Effects.POISON) || player.isPotionActive(Effects.WITHER)))
             return;
         int yTex = player.world.getWorldInfo().isHardcore() ? (absorption ? 18 : 45) : 0;
@@ -191,55 +193,55 @@ public class HealthRenderer {
             if (value < currentValue) {
 
                 // Render heart
-                hud.blit(xPos, yPos, xTex, yTex, 9, 9);
+                hud.func_238474_b_(matrixStack, xPos, yPos, xTex, yTex, 9, 9);
 
                 if (player.isPotionActive(Effects.WITHER)) {
                     colorAlpha(1);
-                    hud.blit(xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 9, 9);
                 } else {
                     // Add shading
                     colorAlpha(0.22F);
-                    hud.blit(xPos, yPos, xTex, yTex + 9, 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, xTex, yTex + 9, 9, 9);
                 }
 
                 // Add hardcore overlay
                 if (yTex == 45 || yTex == 18) {
                     colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
                 } // Add white dot
                 else {
                     colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, (absorption ? 36 : 54), yTex, 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, (absorption ? 36 : 54), yTex, 9, 9);
                 }
                 // Half heart
             } else if (value == currentValue) {
 
                 // Render heart
-                hud.blit(xPos, yPos, xTex + 9, yTex, 9, 9);
+                hud.func_238474_b_(matrixStack, xPos, yPos, xTex + 9, yTex, 9, 9);
 
                 if (player.isPotionActive(Effects.WITHER)) {
                     colorAlpha(1);
-                    hud.blit(xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 9, 9);
                 } else {
                     // Add shading
                     colorAlpha(0.22F);
-                    hud.blit(xPos, yPos, xTex + 9, yTex + 9, 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, xTex + 9, yTex + 9, 9, 9);
                 }
 
                 // Add hardcore overlay
                 if (yTex == 45 || yTex == 18) {
                     colorAlpha(0.7F);
-                    hud.blit(xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, xTex, yTex + (absorption ? 9 : 18), 9, 9);
                 } // Add white dot
                 else {
                     colorAlpha(1.0F);
-                    hud.blit(xPos, yPos, (absorption ? 36 : 54) + 9, yTex, 9, 9);
+                    hud.func_238474_b_(matrixStack, xPos, yPos, (absorption ? 36 : 54) + 9, yTex, 9, 9);
                 }
             }
         }
         GlStateManager.clearCurrentColor();
         GlStateManager.disableBlend();
-        this.client.getTextureManager().bindTexture(AbstractGui.GUI_ICONS_LOCATION);
+        this.client.getTextureManager().bindTexture(AbstractGui.field_230665_h_);
     }
 
     private GLColor multiply(GLColor color1, GLColor color2, int multiply) {
