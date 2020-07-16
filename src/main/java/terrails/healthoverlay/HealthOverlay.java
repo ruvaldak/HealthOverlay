@@ -3,6 +3,7 @@ package terrails.healthoverlay;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.google.common.collect.Lists;
+import net.minecraft.util.text.Color;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -56,33 +57,49 @@ public class HealthOverlay {
         CONFIG_SPEC.setConfig(configData);
     }
 
-    private static Runnable run;
-    public static GLColor[] healthColors;
-    public static GLColor[] poisonColors;
-    public static GLColor[] witherColors;
+    private static final Runnable run;
+    public static Color[] healthColors;
+    public static Color[] poisonColors;
+    public static Color[] witherColors;
 
-    public static GLColor[] absorptionColors;
+    public static Color[] absorptionColors;
 
     static {
         final ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
-        builder.push("Heart colors");
+        builder.comment("All the values are written as a Hexadecimal number in the '#RRGGBB' format").push("Heart colors");
+
         ForgeConfigSpec.ConfigValue<List<? extends String>> health = builder
-                .comment("RGB values for every 10 hearts (not counting the default red)")
-                .defineList("heartColors", Lists.newArrayList("240,110,20", "245,220,35", "45,185,40", "30,175,190", "115,70,225",
-                        "250,125,235", "235,55,90", "255,130,120", "170,255,250", "235,235,255"), o -> o != null && String.class.isAssignableFrom(o.getClass()));
+                .comment("Colors for every 10 hearts (not counting the default red)")
+                .defineList("heartColors", Lists.newArrayList(
+                        Color.func_240743_a_(0xF06E14).func_240747_b_(), Color.func_240743_a_(0xF5DC23).func_240747_b_(),
+                        Color.func_240743_a_(0x2DB928).func_240747_b_(), Color.func_240743_a_(0x1EAFBE).func_240747_b_(),
+                        Color.func_240743_a_(0x7346E1).func_240747_b_(), Color.func_240743_a_(0xFA7DEB).func_240747_b_(),
+                        Color.func_240743_a_(0xEB375A).func_240747_b_(), Color.func_240743_a_(0xFF8278).func_240747_b_(),
+                        Color.func_240743_a_(0xAAFFFA).func_240747_b_(), Color.func_240743_a_(0xEBEBFF).func_240747_b_()),
+                        o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> poison = builder
-                .comment("Two alternating RGB values when poisoned")
-                .defineList("poisonColors", Lists.newArrayList("115,155,0", "150,205,0"), o -> o != null && String.class.isAssignableFrom(o.getClass()));
+                .comment("Two alternating colors when poisoned")
+                .defineList("poisonColors", Lists.newArrayList(
+                        Color.func_240743_a_(0x739B00).func_240747_b_(), Color.func_240743_a_(0x96CD00).func_240747_b_()
+                ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> wither = builder
-                .comment("Two alternating RGB values when withered")
-                .defineList("witherColors", Lists.newArrayList("15,15,15", "45,45,45"), o -> o != null && String.class.isAssignableFrom(o.getClass()));
+                .comment("Two alternating colors when withered")
+                .defineList("witherColors", Lists.newArrayList(
+                        Color.func_240743_a_(0x0F0F0F).func_240747_b_(), Color.func_240743_a_(0x2D2D2D).func_240747_b_()
+                ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> absorption = builder
-                .comment("RGB values for every 10 absorption hearts (not counting the default red)")
-                .defineList("absorptionColors", Lists.newArrayList("225,250,155", "160,255,175", "170,255,250", "170,205,255", "215,180,255",
-                        "250,165,255", "255,180,180", "255,170,125", "215,240,255", "235,255,250"), o -> o != null && String.class.isAssignableFrom(o.getClass()));
+                .comment("Colors for every 10 absorption hearts (not counting the default yellow)")
+                .defineList("absorptionColors", Lists.newArrayList(
+                        Color.func_240743_a_(0xE1FA9B).func_240747_b_(), Color.func_240743_a_(0xA0FFAF).func_240747_b_(),
+                        Color.func_240743_a_(0xAAFFFA).func_240747_b_(), Color.func_240743_a_(0xAACDFF).func_240747_b_(),
+                        Color.func_240743_a_(0xD7B4FF).func_240747_b_(), Color.func_240743_a_(0xFAA5FF).func_240747_b_(),
+                        Color.func_240743_a_(0xFFB4B4).func_240747_b_(), Color.func_240743_a_(0xFFAA7D).func_240747_b_(),
+                        Color.func_240743_a_(0xD7F0FF).func_240747_b_(), Color.func_240743_a_(0xEBFFFA).func_240747_b_()
+                ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
+
         builder.pop();
 
         run = (() -> {
@@ -94,19 +111,15 @@ public class HealthOverlay {
         CONFIG_SPEC = builder.build();
     }
 
-    private static GLColor[] getColors(List<? extends String> heartValues) {
-        GLColor[] heartColors = new GLColor[10];
-        if (heartValues != null && !heartValues.isEmpty()) {
-            if (heartColors.length != heartValues.size() - 1) { heartColors = new GLColor[heartValues.size()]; }
-            for (int i = 0; i < heartValues.size(); i++) {
-                String[] values = heartValues.get(i).split(",");
-                values[0] = values[0].replaceAll("\\s+","");
-                values[1] = values[1].replaceAll("\\s+","");
-                values[2] = values[2].replaceAll("\\s+","");
-                heartColors[i] = new GLColor(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]), 255);
+    private static Color[] getColors(List<? extends String> stringValues) {
+        Color[] colorValues = new Color[10];
+        if (stringValues != null && !stringValues.isEmpty()) {
+            if (colorValues.length != stringValues.size() - 1) { colorValues = new Color[stringValues.size()]; }
+            for (int i = 0; i < stringValues.size(); i++) {
+                colorValues[i] = Color.func_240743_a_(Integer.decode(stringValues.get(i)));
             }
         }
-        return heartColors;
+        return colorValues;
     }
 
     @SubscribeEvent
