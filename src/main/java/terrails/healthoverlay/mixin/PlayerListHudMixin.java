@@ -9,6 +9,9 @@ import net.minecraft.scoreboard.ScoreboardObjective;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import terrails.healthoverlay.PlayerListHudRenderer;
 
 @Mixin(PlayerListHud.class)
@@ -18,10 +21,13 @@ public abstract class PlayerListHudMixin extends DrawableHelper {
     @Shadow private @Final InGameHud inGameHud;
     @Shadow private long showTime;
 
-    private void renderScoreboardObjective(ScoreboardObjective scoreboardObjective, int y, String string, int x, int k, PlayerListEntry playerListEntry) {
+    @Inject(method = "renderScoreboardObjective", cancellable = true, at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/MinecraftClient;getTextureManager()Lnet/minecraft/client/texture/TextureManager;", shift = At.Shift.BEFORE))
+    private void renderScoreboardObjective(ScoreboardObjective scoreboardObjective, int y, String string, int x, int k, PlayerListEntry playerListEntry, CallbackInfo callbackInfo) {
         if (PlayerListHudRenderer.INSTANCE == null) {
             PlayerListHudRenderer.INSTANCE = new PlayerListHudRenderer(this.client, this.inGameHud, this);
         }
         PlayerListHudRenderer.INSTANCE.render(scoreboardObjective, y, string, x, k, playerListEntry, showTime);
+        callbackInfo.cancel();
     }
 }
