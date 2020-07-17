@@ -11,7 +11,7 @@ def loader_version = "0.8.8+build.202"
 def fabric_version = "0.13.1+build.370-1.16"
 
 archivesBaseName = "HealthOverlay-${minecraft_version}"
-version = "3.6.11"
+version = "3.6.12"
 group = "terrails.healthoverlay"
 
 minecraft {
