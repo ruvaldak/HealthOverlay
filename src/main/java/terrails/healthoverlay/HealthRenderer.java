@@ -213,7 +213,7 @@ public class HealthRenderer {
             } else if (value == currentValue) {
 
                 // Render heart
-                drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex, 255);
+                drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex, heartColor);
 
                 if (player.isPotionActive(Effects.WITHER)) {
                     drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 255);
