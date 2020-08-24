@@ -1,5 +1,6 @@
 modLoader="javafml"
-loaderVersion="[28,)"
+loaderVersion="[33,)"
+license="MIT License"
 issueTrackerURL="https://github.com/Terrails/Health-Overlay/issues"
 
 [[mods]]
