@@ -115,7 +115,7 @@ public class HealthRenderer {
             if ((value % 2 == 1 && value == maxHealth) || absorptionCount == absorption && absorption % 2 == 1) {
                 this.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
                 drawTexture(matrixStack, x, y, (highlight ? 1 : 0) * 9, 0);
-                this.client.getTextureManager().bindTexture(AbstractGui.field_230665_h_);
+                this.client.getTextureManager().bindTexture(AbstractGui.GUI_ICONS_LOCATION);
             } else {
                 drawTexture(matrixStack, x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset);
             }
@@ -232,7 +232,7 @@ public class HealthRenderer {
             }
         }
         GlStateManager.disableBlend();
-        this.client.getTextureManager().bindTexture(AbstractGui.field_230665_h_);
+        this.client.getTextureManager().bindTexture(AbstractGui.GUI_ICONS_LOCATION);
     }
 
     private void drawTexture(MatrixStack matrices, int x, int y, int u, int v) {
@@ -255,7 +255,7 @@ public class HealthRenderer {
         RenderUtils.drawColoredTexturedQuad(matrices.getLast().getMatrix(),
                 x, x + 9,
                 y, y + 9,
-                this.hud.func_230927_p_(),
+                this.hud.getBlitOffset(),
                 (u + 0.0F) / 256.0F, (u + (float) 9) / 256.0F,
                 (v + 0.0F) / 256.0F, (v + (float) 9) / 256.0F,
                 red, green, blue, alpha);
