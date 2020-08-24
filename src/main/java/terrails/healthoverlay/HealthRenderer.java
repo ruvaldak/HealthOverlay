@@ -77,7 +77,7 @@ public class HealthRenderer {
         int rowHeight = 10;
         int regenHealth = -1;
         // Armor gets rendered in the same row as health if this isn't set
-        ForgeIngameGui.left_height += rowHeight;
+        ForgeIngameGui.left_height += rowHeight + (absorption > 0 ? 10 : 0);
         if (player.isPotionActive(Effects.REGENERATION)) {
             regenHealth = ticks % MathHelper.ceil(maxHealth + 5.0F);
         }
