@@ -23,9 +23,9 @@ public class HealthRenderer {
     private static final ResourceLocation ABSORPTION_ICONS_LOCATION = new ResourceLocation("healthoverlay:textures/absorption.png");
     private static final ResourceLocation HALF_HEART_ICONS_LOCATION = new ResourceLocation("healthoverlay:textures/half_heart.png");
 
-    private Minecraft client = Minecraft.getInstance();
-    private IngameGui hud = client.ingameGUI;
-    private Random random = new Random();
+    private final Minecraft client = Minecraft.getInstance();
+    private final IngameGui hud = client.ingameGUI;
+    private final Random random = new Random();
 
     private int prevHealth, health;
     private long prevSystemTime, healthTicks;

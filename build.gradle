@@ -11,7 +11,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 
 def minecraft_version = "1.15.2"
-def forge_version = "31.1.25"
+def forge_version = "31.2.41"
 def mappings_version = ["snapshot", "20200225-1.15.1"]
 
 version = '1.0.1'
@@ -26,7 +26,6 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -38,7 +37,6 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -50,18 +48,8 @@ minecraft {
     }
 }
 
-/*
-repositories {
-    flatDir {
-        dirs "includedMods/"
-    }
-}
-*/
-
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.15.2-31.1.25'
-	
-//    runtimeOnly fg.deobf("terrails.statskeeper:StatsKeeper:1.15.2-4.2.4")
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
