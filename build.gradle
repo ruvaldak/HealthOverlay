@@ -14,7 +14,7 @@ def minecraft_version = "1.16.2"
 def forge_version = "33.0.61"
 def mappings_version = ["snapshot", "20200820-1.16.1"]
 
-version = '2.1.4'
+version = '2.1.5'
 group = 'terrails.healthoverlay'
 archivesBaseName = "HealthOverlay-${minecraft_version}"
 
