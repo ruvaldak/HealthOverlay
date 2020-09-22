@@ -11,7 +11,8 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 
 def minecraft_version = "1.16.2"
-def forge_version = "33.0.20"
+def forge_version = "33.0.61"
+def mappings_version = ["snapshot", "20200820-1.16.1"]
 
 version = '2.1.4'
 group = 'terrails.healthoverlay'
@@ -20,12 +21,11 @@ archivesBaseName = "HealthOverlay-${minecraft_version}"
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    mappings channel: "snapshot", version: "20200820-1.16.1"
+    mappings channel: mappings_version[0], version: mappings_version[1]
 	
     runs {
         client {
             workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -37,7 +37,6 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -49,21 +48,14 @@ minecraft {
     }
 }
 
-
 repositories {
     maven {
         url 'https://www.dogforce-games.com/maven'
     }
-//    flatDir {
-//        dirs "includedMods/"
-//    }
 }
-
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-	
-//    runtimeOnly fg.deobf("terrails.statskeeper:StatsKeeper:1.15.2-4.2.4")
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
