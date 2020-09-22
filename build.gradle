@@ -26,7 +26,6 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run')
-         //   property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -38,7 +37,6 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-         //   property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
@@ -50,18 +48,8 @@ minecraft {
     }
 }
 
-/*
-repositories {
-    flatDir {
-        dirs "includedMods/"
-    }
-}
-*/
-
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-//    runtimeOnly fg.deobf("terrails.statskeeper:StatsKeeper:1.14.4-4.2.4")
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
