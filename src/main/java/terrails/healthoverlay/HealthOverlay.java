@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.io.WritingMode;
 import com.google.common.collect.Lists;
 import net.minecraft.util.text.Color;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
@@ -42,7 +41,6 @@ public class HealthOverlay {
     }
 
     private void setup(final FMLCommonSetupEvent event) {
-        MinecraftForge.EVENT_BUS.register(new HealthRenderer());
         loadConfig(FMLPaths.CONFIGDIR.get().resolve("healthoverlay.toml"));
     }
 
