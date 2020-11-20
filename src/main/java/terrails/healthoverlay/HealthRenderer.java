@@ -244,7 +244,7 @@ public class HealthRenderer {
     }
 
     private void drawTexture(MatrixStack matrices, int x, int y, int u, int v, Color color) {
-        int rgb = color.func_240742_a_();
+        int rgb = color.getColor();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;

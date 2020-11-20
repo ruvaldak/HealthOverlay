@@ -75,33 +75,33 @@ public class HealthOverlay {
         ForgeConfigSpec.ConfigValue<List<? extends String>> health = builder
                 .comment("Colors for every 10 hearts (not counting the default red)")
                 .defineList("heartColors", Lists.newArrayList(
-                        Color.func_240743_a_(0xF06E14).func_240747_b_(), Color.func_240743_a_(0xF5DC23).func_240747_b_(),
-                        Color.func_240743_a_(0x2DB928).func_240747_b_(), Color.func_240743_a_(0x1EAFBE).func_240747_b_(),
-                        Color.func_240743_a_(0x7346E1).func_240747_b_(), Color.func_240743_a_(0xFA7DEB).func_240747_b_(),
-                        Color.func_240743_a_(0xEB375A).func_240747_b_(), Color.func_240743_a_(0xFF8278).func_240747_b_(),
-                        Color.func_240743_a_(0xAAFFFA).func_240747_b_(), Color.func_240743_a_(0xEBEBFF).func_240747_b_()),
+                        Color.fromInt(0xF06E14).toString(), Color.fromInt(0xF5DC23).toString(),
+                        Color.fromInt(0x2DB928).toString(), Color.fromInt(0x1EAFBE).toString(),
+                        Color.fromInt(0x7346E1).toString(), Color.fromInt(0xFA7DEB).toString(),
+                        Color.fromInt(0xEB375A).toString(), Color.fromInt(0xFF8278).toString(),
+                        Color.fromInt(0xAAFFFA).toString(), Color.fromInt(0xEBEBFF).toString()),
                         o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> poison = builder
                 .comment("Two alternating colors when poisoned")
                 .defineList("poisonColors", Lists.newArrayList(
-                        Color.func_240743_a_(0x739B00).func_240747_b_(), Color.func_240743_a_(0x96CD00).func_240747_b_()
+                        Color.fromInt(0x739B00).toString(), Color.fromInt(0x96CD00).toString()
                 ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> wither = builder
                 .comment("Two alternating colors when withered")
                 .defineList("witherColors", Lists.newArrayList(
-                        Color.func_240743_a_(0x0F0F0F).func_240747_b_(), Color.func_240743_a_(0x2D2D2D).func_240747_b_()
+                        Color.fromInt(0x0F0F0F).toString(), Color.fromInt(0x2D2D2D).toString()
                 ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> absorption = builder
                 .comment("Colors for every 10 absorption hearts (not counting the default yellow)")
                 .defineList("absorptionColors", Lists.newArrayList(
-                        Color.func_240743_a_(0xE1FA9B).func_240747_b_(), Color.func_240743_a_(0xA0FFAF).func_240747_b_(),
-                        Color.func_240743_a_(0xAAFFFA).func_240747_b_(), Color.func_240743_a_(0xAACDFF).func_240747_b_(),
-                        Color.func_240743_a_(0xD7B4FF).func_240747_b_(), Color.func_240743_a_(0xFAA5FF).func_240747_b_(),
-                        Color.func_240743_a_(0xFFB4B4).func_240747_b_(), Color.func_240743_a_(0xFFAA7D).func_240747_b_(),
-                        Color.func_240743_a_(0xD7F0FF).func_240747_b_(), Color.func_240743_a_(0xEBFFFA).func_240747_b_()
+                        Color.fromInt(0xE1FA9B).toString(), Color.fromInt(0xA0FFAF).toString(),
+                        Color.fromInt(0xAAFFFA).toString(), Color.fromInt(0xAACDFF).toString(),
+                        Color.fromInt(0xD7B4FF).toString(), Color.fromInt(0xFAA5FF).toString(),
+                        Color.fromInt(0xFFB4B4).toString(), Color.fromInt(0xFFAA7D).toString(),
+                        Color.fromInt(0xD7F0FF).toString(), Color.fromInt(0xEBFFFA).toString()
                 ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         builder.pop();
@@ -120,7 +120,7 @@ public class HealthOverlay {
         if (stringValues != null && !stringValues.isEmpty()) {
             if (colorValues.length != stringValues.size() - 1) { colorValues = new Color[stringValues.size()]; }
             for (int i = 0; i < stringValues.size(); i++) {
-                colorValues[i] = Color.func_240743_a_(Integer.decode(stringValues.get(i)));
+                colorValues[i] = Color.fromInt(Integer.decode(stringValues.get(i)));
             }
         }
         return colorValues;
