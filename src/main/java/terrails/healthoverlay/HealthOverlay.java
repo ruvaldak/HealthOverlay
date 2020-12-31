@@ -25,7 +25,7 @@ public class HealthOverlay implements ClientModInitializer {
 
     public static final Logger LOGGER = LogManager.getLogger("HealthOverlay");
 
-    private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDirectory(), "healthoverlay.json5");
+    private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "healthoverlay.json5");
     private static final JanksonValueSerializer CONFIG_SERIALIZER = new JanksonValueSerializer(false);
     private static final ConfigBranch CONFIG_NODE;
 
