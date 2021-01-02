@@ -7,7 +7,6 @@ bin
 .project
 
 # idea
-logs
 out
 *.ipr
 *.iws
@@ -15,17 +14,14 @@ out
 .idea
 
 # gradle
+logs
 build
 .gradle
 
 # other
 eclipse
 run
-/includedMods/
+libs
 
 # Files from Forge MDK
 forge*changelog.txt
-
-# scripts
-branch_change.pyw
-branches
