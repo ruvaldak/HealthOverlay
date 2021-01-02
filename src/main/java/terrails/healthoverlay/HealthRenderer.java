@@ -63,7 +63,7 @@ public class HealthRenderer {
 
         HealthRenderer.health = currentHealth;
         int previousHealth = HealthRenderer.prevHealth;
-        HealthRenderer.random.setSeed(ticks * 312871);
+        HealthRenderer.random.setSeed(ticks * 312871L);
         int xPos = HealthRenderer.client.getMainWindow().getScaledWidth() / 2 - 91;
         int yPos = HealthRenderer.client.getMainWindow().getScaledHeight() - 39;
         float maxHealth = player.getMaxHealth();
