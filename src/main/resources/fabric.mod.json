@@ -30,9 +30,5 @@
   "depends": {
     "fabricloader": ">=0.8.8",
     "fabric": "*"
-  },
-
-  "custom": {
-    "modmenu:clientsideOnly": true
   }
 }
