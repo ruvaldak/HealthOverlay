@@ -73,33 +73,30 @@ public class HealthOverlay {
         ForgeConfigSpec.ConfigValue<List<? extends String>> health = builder
                 .comment("Colors for every 10 hearts (not counting the default red)")
                 .defineList("heartColors", Lists.newArrayList(
-                        Color.fromInt(0xF06E14).toString(), Color.fromInt(0xF5DC23).toString(),
-                        Color.fromInt(0x2DB928).toString(), Color.fromInt(0x1EAFBE).toString(),
-                        Color.fromInt(0x7346E1).toString(), Color.fromInt(0xFA7DEB).toString(),
-                        Color.fromInt(0xEB375A).toString(), Color.fromInt(0xFF8278).toString(),
-                        Color.fromInt(0xAAFFFA).toString(), Color.fromInt(0xEBEBFF).toString()),
+                        "#F06E14", "#F5DC23", "#2DB928", "#1EAFBE", "#7346E1",
+                        "#FA7DEB", "#EB375A", "#FF8278", "#AAFFFA", "#EBEBFF"),
                         o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> poison = builder
                 .comment("Two alternating colors when poisoned")
                 .defineList("poisonColors", Lists.newArrayList(
-                        Color.fromInt(0x739B00).toString(), Color.fromInt(0x96CD00).toString()
+                        "#739B00", "#96CD00"
                 ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> wither = builder
                 .comment("Two alternating colors when withered")
                 .defineList("witherColors", Lists.newArrayList(
-                        Color.fromInt(0x0F0F0F).toString(), Color.fromInt(0x2D2D2D).toString()
+                        "#0F0F0F", "#2D2D2D"
                 ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         ForgeConfigSpec.ConfigValue<List<? extends String>> absorption = builder
                 .comment("Colors for every 10 absorption hearts (not counting the default yellow)")
                 .defineList("absorptionColors", Lists.newArrayList(
-                        Color.fromInt(0xE1FA9B).toString(), Color.fromInt(0xA0FFAF).toString(),
-                        Color.fromInt(0xAAFFFA).toString(), Color.fromInt(0xAACDFF).toString(),
-                        Color.fromInt(0xD7B4FF).toString(), Color.fromInt(0xFAA5FF).toString(),
-                        Color.fromInt(0xFFB4B4).toString(), Color.fromInt(0xFFAA7D).toString(),
-                        Color.fromInt(0xD7F0FF).toString(), Color.fromInt(0xEBFFFA).toString()
+                        "#E1FA9B", "#A0FFAF",
+                        "#AAFFFA", "#AACDFF",
+                        "#D7B4FF", "#FAA5FF",
+                        "#FFB4B4", "#FFAA7D",
+                        "#D7F0FF", "#EBFFFA"
                 ), o -> o != null && String.class.isAssignableFrom(o.getClass()));
 
         builder.pop();
@@ -110,6 +107,7 @@ public class HealthOverlay {
             witherColors = getColors(wither.get());
             absorptionColors = getColors(absorption.get());
         });
+
         CONFIG_SPEC = builder.build();
     }
 
@@ -118,7 +116,8 @@ public class HealthOverlay {
         if (stringValues != null && !stringValues.isEmpty()) {
             if (colorValues.length != stringValues.size() - 1) { colorValues = new Color[stringValues.size()]; }
             for (int i = 0; i < stringValues.size(); i++) {
-                colorValues[i] = Color.fromInt(Integer.decode(stringValues.get(i)));
+                colorValues[i] = Color.parseColor(stringValues.get(i));
+//                colorValues[i] = Color.fromRgb(Integer.decode(stringValues.get(i)));
             }
         }
         return colorValues;

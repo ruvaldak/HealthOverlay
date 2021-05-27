@@ -36,21 +36,21 @@ public class HealthRenderer {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void render(RenderGameOverlayEvent.Pre event) {
         MatrixStack matrixStack = event.getMatrixStack();
-        Entity renderEntity = HealthRenderer.client.getRenderViewEntity();
+        Entity renderEntity = HealthRenderer.client.getCameraEntity();
         if (event.getType() != RenderGameOverlayEvent.ElementType.HEALTH || !(renderEntity instanceof PlayerEntity) || event.isCanceled()
                 || HealthOverlay.healthColors.length == 0 || HealthOverlay.absorptionColors.length == 0) {
             return;
         }
         PlayerEntity player = (PlayerEntity) renderEntity;
-        int ticks = HealthRenderer.client.ingameGUI.getTicks();
+        int ticks = HealthRenderer.client.gui.getGuiTicks();
 
         int currentHealth = MathHelper.ceil(player.getHealth());
         boolean highlight = HealthRenderer.healthTicks > (long) ticks && (HealthRenderer.healthTicks - (long) ticks) / 3L % 2L == 1L;
-        long systemTime = Util.milliTime();
-        if (currentHealth < HealthRenderer.health && player.hurtResistantTime > 0) {
+        long systemTime = Util.getMillis();
+        if (currentHealth < HealthRenderer.health && player.invulnerableTime > 0) {
             HealthRenderer.prevSystemTime = systemTime;
             HealthRenderer.healthTicks = (ticks + 20);
-        } else if (currentHealth > HealthRenderer.health && player.hurtResistantTime > 0) {
+        } else if (currentHealth > HealthRenderer.health && player.invulnerableTime > 0) {
             HealthRenderer.prevSystemTime = systemTime;
             HealthRenderer.healthTicks = (ticks + 10);
         }
@@ -64,8 +64,8 @@ public class HealthRenderer {
         HealthRenderer.health = currentHealth;
         int previousHealth = HealthRenderer.prevHealth;
         HealthRenderer.random.setSeed(ticks * 312871L);
-        int xPos = HealthRenderer.client.getMainWindow().getScaledWidth() / 2 - 91;
-        int yPos = HealthRenderer.client.getMainWindow().getScaledHeight() - 39;
+        int xPos = HealthRenderer.client.getWindow().getGuiScaledWidth() / 2 - 91;
+        int yPos = HealthRenderer.client.getWindow().getGuiScaledHeight() - 39;
         float maxHealth = player.getMaxHealth();
         int absorption = MathHelper.ceil(player.getAbsorptionAmount());
 
@@ -79,19 +79,20 @@ public class HealthRenderer {
         int regenHealth = -1;
         // Armor gets rendered in the same row as health if this isn't set
         ForgeIngameGui.left_height += rowHeight + (absorption > 0 ? 10 : 0);
-        if (player.isPotionActive(Effects.REGENERATION)) {
+        if (player.hasEffect(Effects.REGENERATION)) {
             regenHealth = ticks % MathHelper.ceil(maxHealth + 5.0F);
         }
 
         int effectOffset = 16;
-        if (player.isPotionActive(Effects.POISON)) {
+        if (player.hasEffect(Effects.POISON)) {
             effectOffset += 36;
-        } else if (player.isPotionActive(Effects.WITHER)) {
+        } else if (player.hasEffect(Effects.WITHER)) {
             effectOffset += 72;
         }
 
         int hardcoreOffset = 0;
-        if (player.world.getWorldInfo().isHardcore()) {
+        assert HealthRenderer.client.level != null;
+        if (HealthRenderer.client.level.getLevelData().isHardcore()) {
             hardcoreOffset = 5;
         }
 
@@ -114,9 +115,9 @@ public class HealthRenderer {
 
             // Regular half heart background
             if ((value % 2 == 1 && value == maxHealth) || absorptionCount == absorption && absorption % 2 == 1) {
-                HealthRenderer.client.getTextureManager().bindTexture(HALF_HEART_ICONS_LOCATION);
+                HealthRenderer.client.getTextureManager().bind(HALF_HEART_ICONS_LOCATION);
                 drawTexture(matrixStack, x, y, (highlight ? 1 : 0) * 9, 0);
-                HealthRenderer.client.getTextureManager().bindTexture(AbstractGui.GUI_ICONS_LOCATION);
+                HealthRenderer.client.getTextureManager().bind(AbstractGui.GUI_ICONS_LOCATION);
             } else {
                 drawTexture(matrixStack, x, y, 16 + (highlight ? 1 : 0) * 9, 9 * hardcoreOffset);
             }
@@ -158,15 +159,16 @@ public class HealthRenderer {
     }
 
     private static void renderHearts(MatrixStack matrixStack, PlayerEntity player, int xPosition, int yPosition, int regenHealth, boolean absorption) {
-        if (absorption && (player.isPotionActive(Effects.POISON) || player.isPotionActive(Effects.WITHER)))
+        if (absorption && (player.hasEffect(Effects.POISON) || player.hasEffect(Effects.WITHER)))
             return;
-        int yTex = player.world.getWorldInfo().isHardcore() ? (absorption ? 18 : 45) : 0;
+        assert HealthRenderer.client.level != null;
+        int yTex = HealthRenderer.client.level.getLevelData().isHardcore() ? (absorption ? 18 : 45) : 0;
         int xTex = 0;
         int currentValue = MathHelper.ceil(absorption ? player.getAbsorptionAmount() : player.getHealth()) - 20;
         if (currentValue <= 0) return;
 
-        GlStateManager.enableBlend();
-        HealthRenderer.client.getTextureManager().bindTexture(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
+        GlStateManager._enableBlend();
+        HealthRenderer.client.getTextureManager().bind(absorption ? ABSORPTION_ICONS_LOCATION : HEALTH_ICONS_LOCATION);
         int prevType = 0;
         for (int i = 0; i < MathHelper.ceil(currentValue / 2.0F); ++i) {
             int value = i * 2 + 1;
@@ -180,11 +182,11 @@ public class HealthRenderer {
             int xPos = xPosition + i % 10 * 8;
 
             // Color the hearts with a mixed color when an effect is active
-            if (player.isPotionActive(Effects.POISON)) {
+            if (player.hasEffect(Effects.POISON)) {
                 xTex = 18;
                 heartColor = (prevType != typeOffset) ? HealthOverlay.poisonColors[0] : HealthOverlay.poisonColors[1];
                 //color(multiply(heartColor, new GLColor(/*35*/204, /*97*/204, /*36*/0), 150));
-            } else if (player.isPotionActive(Effects.WITHER)) {
+            } else if (player.hasEffect(Effects.WITHER)) {
                 xTex = 36;
                 heartColor = (prevType != typeOffset) ? HealthOverlay.witherColors[0] : HealthOverlay.witherColors[1];
                 //color(multiply(heartColor, new GLColor(1, 1, 1), 50));
@@ -196,7 +198,7 @@ public class HealthRenderer {
                 // Render heart
                 drawTexture(matrixStack, xPos, yPos, xTex, yTex, heartColor);
 
-                if (player.isPotionActive(Effects.WITHER)) {
+                if (player.hasEffect(Effects.WITHER)) {
                     drawTexture(matrixStack, xPos, yPos, xTex, yTex + (yTex == 45 ? 27 : 18), 255);
                 } else {
                     // Add shading
@@ -216,7 +218,7 @@ public class HealthRenderer {
                 // Render heart
                 drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex, heartColor);
 
-                if (player.isPotionActive(Effects.WITHER)) {
+                if (player.hasEffect(Effects.WITHER)) {
                     drawTexture(matrixStack, xPos, yPos, xTex + 9, yTex + (yTex == 45 ? 27 : 18), 255);
                 } else {
                     // Add shading
@@ -232,8 +234,8 @@ public class HealthRenderer {
                 }
             }
         }
-        GlStateManager.disableBlend();
-        HealthRenderer.client.getTextureManager().bindTexture(AbstractGui.GUI_ICONS_LOCATION);
+        GlStateManager._disableBlend();
+        HealthRenderer.client.getTextureManager().bind(AbstractGui.GUI_ICONS_LOCATION);
     }
 
     private static void drawTexture(MatrixStack matrices, int x, int y, int u, int v) {
@@ -245,7 +247,7 @@ public class HealthRenderer {
     }
 
     private static void drawTexture(MatrixStack matrices, int x, int y, int u, int v, Color color) {
-        int rgb = color.getColor();
+        int rgb = color.getValue();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;
@@ -253,10 +255,10 @@ public class HealthRenderer {
     }
 
     private static void drawTexture(MatrixStack matrices, int x, int y, int u, int v, int red, int green, int blue, int alpha) {
-        RenderUtils.drawColoredTexturedQuad(matrices.getLast().getMatrix(),
+        RenderUtils.drawColoredTexturedQuad(matrices.last().pose(),
                 x, x + 9,
                 y, y + 9,
-                HealthRenderer.client.ingameGUI.getBlitOffset(),
+                HealthRenderer.client.gui.getBlitOffset(),
                 (u + 0.0F) / 256.0F, (u + (float) 9) / 256.0F,
                 (v + 0.0F) / 256.0F, (v + (float) 9) / 256.0F,
                 red, green, blue, alpha);
